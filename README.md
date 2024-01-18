@@ -19,6 +19,6 @@ pip install s1_client
 ```
 from s1_client import crud
 
-print(curd.post())
+print(crud.post())
 ```
 
