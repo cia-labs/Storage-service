@@ -17,7 +17,7 @@ pip install s1_client
 
 ### Usage 
 ```
-from your_library_name import module1
+from s1_client import crud
 
 print(curd.post())
 ```
