@@ -5,8 +5,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional, List
 from server.app.crud.crud import create_image_metadata, get_metadata, delete_metadata
 import os
-import string
-import random
 import sqlite3
 
 app = FastAPI()
@@ -64,3 +62,18 @@ async def update_files(key: str, updated_files: List[UploadFile] = File(...), ne
                 f.write(updated_file.file.read())
 
         return JSONResponse(content={"message": "Files updated successfully"})
+
+
+@app.delete("/delete/{key}")
+async def delete_files(key: str):
+    folder_path = f"{key}"
+
+    try:
+        shutil.rmtree(folder_path)
+        delete_metadata(key)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Folder not found")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error deleting folder: {str(e)}")
+
+    return {"message": f"Folder '{key}' and its contents deleted successfully"}

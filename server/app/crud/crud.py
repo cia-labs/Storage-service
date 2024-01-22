@@ -58,3 +58,12 @@ def get_metadata(key):
         raise HTTPException(status_code=500, detail=f"Error fetching metadata: {str(e)}")
     finally:
         connection.close()
+
+def delete_metadata(key):
+    connection= create_connection(db_file)
+    cursor= connection.cursor()
+    cursor.execute("""
+    Delete from images where key=? 
+                   """,(key,))
+    connection.commit()
+    cursor.close()
