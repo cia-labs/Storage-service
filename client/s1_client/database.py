@@ -3,7 +3,7 @@ from fastapi import FastAPI,Form,  UploadFile, HTTPException #,File
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional, List
-from ..crud import create_table, create_image_metadata, get_metadata #update_image_metadata, delete_image_metadata
+from crud import create_table, create_image_metadata, get_metadata #update_image_metadata, delete_image_metadata
 import os
 from fastapi.responses import FileResponse #, HTMLResponse , StreamingResponse
 import string
