@@ -3,7 +3,7 @@ from fastapi import FastAPI,Form,  UploadFile, HTTPException #,File
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional, List
-from crud import create_connection, check_key_existence, create_image_metadata, get_metadata #update_image_metadata, delete_image_metadata
+from crud import  check_key_existence, create_image_metadata, get_metadata #update_image_metadata, delete_image_metadata
 import os
 from fastapi.responses import FileResponse #, HTMLResponse , StreamingResponse
 import string
@@ -26,7 +26,7 @@ def generate_random_string(length=8):
     return ''.join(random.choice(letters) for _ in range(length))
 
 @app.post("/upload/")
-async def update_file(key: str = Form(...), encoded_content: List[str] = Form(...)):
+async def upload(key: str = Form(...), encoded_content: List[str] = Form(...)):
     try:
         if check_key_existence(key):
             raise HTTPException(status_code=400, detail="Key already exists")

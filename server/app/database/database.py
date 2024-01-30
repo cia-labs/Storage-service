@@ -34,11 +34,14 @@ def generate_random_string(length=8):
     return ''.join(random.choice(letters) for _ in range(length))
 
 @app.post("/upload/")
-async def update_file(key: str = Form(...), encoded_content: List[str] = Form(...)):
+async def upload(key: str = Form(...), encoded_content: List[str] = Form(...)):
     try:
         if not key:
             key = generate_random_string()
         key_directory = f"{key}"
+         ########################################################################
+        #u can change the below path to the path where files need to be saved .#
+        ########################################################################
         directory_key = f"./storage/{key_directory}"
         os.makedirs(directory_key , exist_ok=True)
         for i, encoded_items in enumerate(encoded_content, start=1):
