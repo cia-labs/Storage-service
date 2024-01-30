@@ -70,23 +70,3 @@ def get_metadata(key):
         raise HTTPException(status_code=500, detail=f"Error fetching metadata: {str(e)}")
     finally:
         connection.close()
-#the below is not maintained will return error as huge as the whale that lives down the street
-
-'''
-def update_image_metadata(db_file, key, new_file_path):
-    connection = create_connection(db_file)
-    cursor = connection.cursor()
-    cursor.execute("""
-    UPDATE images SET file_path = ? WHERE key = ?
-    """, (new_file_path, key))
-    connection.commit()
-    connection.close()
-
-def delete_image_metadata(db_file, key):
-    connection = create_connection(db_file)
-    cursor = connection.cursor()
-    cursor.execute("""
-    DELETE FROM images WHERE key = ?
-    """, (key,))
-    connection.commit()
-    connection.close()'''
