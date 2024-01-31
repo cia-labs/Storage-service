@@ -2,12 +2,41 @@ import base64
 import os
 import requests
 
-
 new_key="Enter new key value or None if no new Key value"
 key="Enter the key value"
 API_URL = "API_URL_SERVER"
 directory_path = r"Directory Path"
 
+
+def encode_and_store_files(directory_path):
+    encoded_content = []
+    try:
+
+        for filename in os.listdir(directory_path):
+            file_path = os.path.join(directory_path, filename)
+
+            if os.path.isfile(file_path):
+                with open(file_path, 'rb') as file:
+                    file_content = file.read()
+
+                encoded_file_content = base64.b64encode(file_content)
+                encoded_content.append(encoded_file_content)
+
+        try:
+            data = {"key": key, "encoded_content": encoded_content}
+            response = requests.post(f"{API_URL}/upload/", data=data)
+
+            if response.status_code == 200:
+                print("Update successful:", response.json())
+            else:
+                raise requests.HTTPError(response.text)
+
+        except requests.HTTPError as e:
+            print("Error:", e)
+
+
+    except Exception as e:
+        print(f"Error: {e}")
 
 
 def get_file(key):
@@ -41,39 +70,6 @@ def get_file(key):
 
     except Exception as e:
         print("Error:", e)
-
-get_file(key)
-
-def encode_and_store_files(directory_path):
-    encoded_content = []
-    try:
-
-        for filename in os.listdir(directory_path):
-            file_path = os.path.join(directory_path, filename)
-
-            if os.path.isfile(file_path):
-                with open(file_path, 'rb') as file:
-                    file_content = file.read()
-
-                encoded_file_content = base64.b64encode(file_content)
-                encoded_content.append(encoded_file_content)
-
-        try:
-            data = {"key": key, "encoded_content": encoded_content}
-            response = requests.post(f"{API_URL}/upload/", data=data)
-
-            if response.status_code == 200:
-                print("Update successful:", response.json())
-            else:
-                raise requests.HTTPError(response.text)
-
-        except requests.HTTPError as e:
-            print("Error:", e)
-
-
-    except Exception as e:
-        print(f"Error: {e}")
-
 
 def update(API_URL, key,directory_path, new_key=None):
     try:
@@ -116,3 +112,9 @@ def delete(API_URL, key):
 
     except requests.HTTPError as e:
         print("Error:", e)
+
+
+#encode_and_store_files(directory_path)
+#get_file(key)
+# update(API_URL,key,directory_path,new_key)
+# delete(API_URL,key)
