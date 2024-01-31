@@ -1,0 +1,2 @@
+def post():
+    return 'posted'
