@@ -1,12 +1,14 @@
 import shutil
-from fastapi import FastAPI, UploadFile, HTTPException, Form, File
+from fastapi import FastAPI, HTTPException, Form
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional, List
-from server.app.crud.crud import create_image_metadata, get_metadata, delete_metadata
+from app.crud.crud import create_connection,create_image_metadata, get_metadata, delete_metadata,check_key_existence,db_file
 import os
+import string
+import random
 import sqlite3
-
+from fastapi import HTTPException
 app = FastAPI()
 
 app.add_middleware(
@@ -17,15 +19,56 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-DATABASE = 'db_name.db'
+connection=create_connection(db_file)
 
+def generate_random_string(length=8):
+    letters = string.ascii_lowercase
+    return ''.join(random.choice(letters) for _ in range(length))
 
-def connect_db():
-    return sqlite3.connect(DATABASE)
+@app.post("/upload/")
+async def update_file(key: str = Form(...), encoded_content: List[str] = Form(...)):
+    try:
+        if check_key_existence(key):
+            raise HTTPException(status_code=400, detail="Key already exists")
+        if not key:
+            key = generate_random_string()
+        key_directory = f"{key}"
+        directory_key = f"./storage/{key_directory}"
+        os.makedirs(directory_key , exist_ok=True)
+        for i, encoded_items in enumerate(encoded_content, start=1):
+                output_file_path = os.path.join(directory_key, f'encodedtxt{i}.txt')
 
-@app.put("/update/{key}")
-async def update_files(key: str, updated_files: List[UploadFile] = File(...), new_key: Optional[str] = Form(None)):
+                with open(output_file_path, 'wb') as output_file:
+                    output_file.write(encoded_items.encode())
+        create_image_metadata( key, key_directory)
+        return JSONResponse(content={"message": "File uploaded successfully"})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/retrieve/{key}")
+async def retrieve_file(key: str, metadata_only: Optional[bool] = False):
     path = get_metadata(key)
+    if not path or not os.path.exists(path):
+        raise HTTPException(status_code=404, detail="Key not found")
+
+    binary_data_list = []
+
+    for filename in os.listdir(path):
+        file_path = os.path.join(path, filename)
+
+        if os.path.isfile(file_path):
+            with open(file_path, "rb") as file:
+                binary_data = file.read()
+
+                binary_data_list.append(binary_data)
+
+
+    return binary_data_list   
+
+
+@app.put("/update/")
+async def update_files(key: str, encoded_content: List[str] = Form(...), new_key: Optional[str] = Form(None)):
+    path = "./storage/"+get_metadata(key)
 
     if not path or not os.path.exists(path):
         raise HTTPException(status_code=404, detail="Key not found")
@@ -39,34 +82,38 @@ async def update_files(key: str, updated_files: List[UploadFile] = File(...), ne
             create_image_metadata(new_key, new_key_directory)
             new_path = get_metadata(new_key)
 
-        for filename in os.listdir(path):
-            source_file_path = os.path.join(path, filename)
-            destination_file_path = os.path.join(new_path, filename)
-            shutil.copy2(source_file_path, destination_file_path)
+        existing_files = [f for f in os.listdir(new_path) if f.startswith("encodedtxt")]
+        if existing_files:
+            max_existing_index = max(int(f.split("encodedtxt")[1].split(".")[0]) for f in existing_files)
+        else:
+            max_existing_index = 0
 
-        for updated_file in updated_files:
-            filename = updated_file.filename
-            file_path = os.path.join(new_path, filename)
+        for i, encoded_items in enumerate(encoded_content, start=max_existing_index+1):
+            output_file_path = os.path.join(new_path, f'encodedtxt{i}.txt')
 
-            with open(file_path, "wb") as f:
-                f.write(updated_file.file.read())
+            with open(output_file_path, 'wb') as output_file:
+                output_file.write(encoded_items.encode())
         
         return JSONResponse(content={"message": "Files updated successfully"})
 
     if path or os.path.exists(path):
-        for updated_file in updated_files:
-            filename = updated_file.filename
-            file_path = os.path.join(path, filename)
+        existing_files = [f for f in os.listdir(path) if f.startswith("encodedtxt")]
+        if existing_files:
+            max_existing_index = max(int(f.split("encodedtxt")[1].split(".")[0]) for f in existing_files)
+        else:
+            max_existing_index = 0
 
-            with open(file_path, "wb") as f:
-                f.write(updated_file.file.read())
+        for i, encoded_items in enumerate(encoded_content, start=max_existing_index+1):
+            output_file_path = os.path.join(path, f'encodedtxt{i}.txt')
+
+            with open(output_file_path, 'wb') as output_file:
+                output_file.write(encoded_items.encode())
 
         return JSONResponse(content={"message": "Files updated successfully"})
 
-
 @app.delete("/delete/{key}")
 async def delete_files(key: str):
-    folder_path = f"{key}"
+    folder_path = f"./storage/{key}"
 
     try:
         shutil.rmtree(folder_path)

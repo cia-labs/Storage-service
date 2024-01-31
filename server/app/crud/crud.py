@@ -1,7 +1,7 @@
 import sqlite3
 from fastapi import HTTPException
 
-db_file = "db_name.db"
+db_file = "../server/app/crud/db_name.db"
 
 def create_connection(db_file):
     connection = sqlite3.connect(db_file)
@@ -11,7 +11,7 @@ def create_table(db_file):
     connection = create_connection(db_file)
     cursor = connection.cursor()
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS images (
+    CREATE TABLE IF NOT EXISTS store (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         key TEXT NOT NULL,
         key_directory TEXT NOT NULL
@@ -20,14 +20,15 @@ def create_table(db_file):
     connection.commit()
     connection.close()
 
+#avoid creation of multiple database
+create_table(db_file)
 
 def create_image_metadata( key, key_directory):
     connection = create_connection(db_file)
     cursor = connection.cursor()
-    create_table(db_file)
 
     cursor.execute("""
-    SELECT EXISTS (SELECT 1 FROM images WHERE key = ? LIMIT 1)
+    SELECT EXISTS (SELECT 1 FROM store WHERE key = ? LIMIT 1)
     """, (key,))
     key_exists = cursor.fetchone()[0]
 
@@ -36,7 +37,7 @@ def create_image_metadata( key, key_directory):
         return {"status": "success", "message":"File uploaded successfully"}
 
     cursor.execute("""
-    INSERT INTO images (key, key_directory) VALUES (?, ?)
+    INSERT INTO store (key, key_directory) VALUES (?, ?)
     """, (key, key_directory))
     connection.commit()
     connection.close()
@@ -47,7 +48,7 @@ def get_metadata(key):
         connection = create_connection(db_file)
         cursor = connection.cursor()
         cursor.execute("""
-        SELECT key_directory FROM images WHERE key = ?
+        SELECT key_directory FROM store WHERE key = ?
         """, (key,))
         result = cursor.fetchone()
         if result:
@@ -63,7 +64,16 @@ def delete_metadata(key):
     connection= create_connection(db_file)
     cursor= connection.cursor()
     cursor.execute("""
-    Delete from images where key=? 
+    Delete from store where key=? 
                    """,(key,))
     connection.commit()
     cursor.close()
+
+def check_key_existence(key):
+    connection = create_connection(db_file)
+    create_table(db_file)
+    cursor = connection.cursor()
+    cursor.execute("SELECT id FROM store WHERE key=?", (key,))
+    result = cursor.fetchone()
+    connection.close()
+    return result is not None
