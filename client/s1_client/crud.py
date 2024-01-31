@@ -1,2 +1,0 @@
-def post():
-    return 'posted'
