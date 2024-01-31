@@ -71,7 +71,6 @@ def delete_metadata(key):
 
 def check_key_existence(key):
     connection = create_connection(db_file)
-    create_table(db_file)
     cursor = connection.cursor()
     cursor.execute("SELECT id FROM store WHERE key=?", (key,))
     result = cursor.fetchone()

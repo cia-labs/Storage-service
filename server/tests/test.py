@@ -2,10 +2,10 @@ import base64
 import os
 import requests
 
-new_key="Enter new key value or None if no new Key value"
-key="Enter the key value"
+new_key="Enter new key or None if no value provided"
+key="Enter the key"
 API_URL = "API_URL_SERVER"
-directory_path = r"Directory Path"
+directory_path = r"Directory_path"
 
 
 def encode_and_store_files(directory_path):
@@ -114,7 +114,7 @@ def delete(API_URL, key):
         print("Error:", e)
 
 
-#encode_and_store_files(directory_path)
-#get_file(key)
+# encode_and_store_files(directory_path)
+# get_file(key)
 # update(API_URL,key,directory_path,new_key)
 # delete(API_URL,key)
