@@ -1,18 +1,17 @@
 import sqlite3
 from fastapi import HTTPException
 
-db_file = "../server/app/crud/db_name.db"
+db_file = "db_name.db"
 
 def create_connection(db_file):
     connection = sqlite3.connect(db_file)
     return connection
 
-
 def create_table(db_file):
     connection = create_connection(db_file)
     cursor = connection.cursor()
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS store (
+    CREATE TABLE IF NOT EXISTS images (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         key TEXT NOT NULL,
         key_directory TEXT NOT NULL
@@ -21,36 +20,26 @@ def create_table(db_file):
     connection.commit()
     connection.close()
 
-# to avoid creation of multiple database creation
-create_table(db_file)
-
-def check_key_existence(key):
-    connection = create_connection(db_file)
-    cursor = connection.cursor()
-    cursor.execute("SELECT id FROM store WHERE key=?", (key,))
-    result = cursor.fetchone()
-    connection.close()
-    return result is not None
-
 
 def create_image_metadata( key, key_directory):
-        connection = create_connection(db_file)
-        cursor = connection.cursor()
-        cursor.execute("""
-        SELECT EXISTS (SELECT 1 FROM store WHERE key = ? LIMIT 1)
-        """, (key,))
-        key_exists = cursor.fetchone()[0]
+    connection = create_connection(db_file)
+    cursor = connection.cursor()
+    create_table(db_file)
 
-        if key_exists:
-            connection.close()
-            return {"status": "success", "message":"File uploaded successfully"}
+    cursor.execute("""
+    SELECT EXISTS (SELECT 1 FROM images WHERE key = ? LIMIT 1)
+    """, (key,))
+    key_exists = cursor.fetchone()[0]
 
-        cursor.execute("""
-        INSERT INTO store (key, key_directory) VALUES (?, ?)
-        """, (key, key_directory))
-        connection.commit()
+    if key_exists:
         connection.close()
-    
+        return {"status": "success", "message":"File uploaded successfully"}
+
+    cursor.execute("""
+    INSERT INTO images (key, key_directory) VALUES (?, ?)
+    """, (key, key_directory))
+    connection.commit()
+    connection.close()
 
 def get_metadata(key):
 
@@ -58,7 +47,7 @@ def get_metadata(key):
         connection = create_connection(db_file)
         cursor = connection.cursor()
         cursor.execute("""
-        SELECT key_directory FROM store WHERE key = ?
+        SELECT key_directory FROM images WHERE key = ?
         """, (key,))
         result = cursor.fetchone()
         if result:
@@ -74,7 +63,7 @@ def delete_metadata(key):
     connection= create_connection(db_file)
     cursor= connection.cursor()
     cursor.execute("""
-    Delete from store where key=? 
+    Delete from images where key=? 
                    """,(key,))
     connection.commit()
     cursor.close()
