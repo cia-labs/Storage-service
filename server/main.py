@@ -7,7 +7,6 @@ from app.crud.crud import create_connection,create_image_metadata, get_metadata,
 import os
 import string
 import random
-import sqlite3
 from fastapi import HTTPException
 app = FastAPI()
 
@@ -47,7 +46,7 @@ async def update_file(key: str = Form(...), encoded_content: List[str] = Form(..
 
 @app.get("/retrieve/{key}")
 async def retrieve_file(key: str, metadata_only: Optional[bool] = False):
-    path = get_metadata(key)
+    path = "./storage/"+get_metadata(key)
     if not path or not os.path.exists(path):
         raise HTTPException(status_code=404, detail="Key not found")
 
@@ -74,13 +73,17 @@ async def update_files(key: str, encoded_content: List[str] = Form(...), new_key
         raise HTTPException(status_code=404, detail="Key not found")
 
     if new_key and new_key != key:
-        new_path = get_metadata(new_key)
+ 
+        new_key_directory = f"./storage/{new_key}"
+        os.makedirs(new_key_directory, exist_ok=True)
+        create_image_metadata(new_key, new_key_directory)
+        path="./storage/"+get_metadata(key)
+        new_path = new_key_directory
 
-        if not new_path:
-            new_key_directory = f"{new_key}"
-            os.makedirs(new_key_directory, exist_ok=True)
-            create_image_metadata(new_key, new_key_directory)
-            new_path = get_metadata(new_key)
+        for filename in os.listdir(path):
+            source_file_path = os.path.join(path, filename)
+            destination_file_path = os.path.join(new_path, filename)
+            shutil.copy2(source_file_path, destination_file_path)
 
         existing_files = [f for f in os.listdir(new_path) if f.startswith("encodedtxt")]
         if existing_files:
@@ -111,7 +114,7 @@ async def update_files(key: str, encoded_content: List[str] = Form(...), new_key
 
         return JSONResponse(content={"message": "Files updated successfully"})
 
-@app.delete("/delete/{key}")
+@app.delete("/delete/")
 async def delete_files(key: str):
     folder_path = f"./storage/{key}"
 

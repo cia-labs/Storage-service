@@ -20,7 +20,7 @@ def create_table(db_file):
     connection.commit()
     connection.close()
 
-#avoid creation of multiple database
+#To avoid creation of multiple database
 create_table(db_file)
 
 def create_image_metadata( key, key_directory):
