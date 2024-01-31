@@ -35,7 +35,7 @@ def get_file(key):
             print("Error:", e)
 
 
-        for index, file in enumerate(files):
+        for index, file in enumerate(response):
         
             decoded_data = base64.b64decode(file)
             filename = f"file_{index}.jpg"
