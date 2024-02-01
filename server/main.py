@@ -24,7 +24,6 @@ def generate_random_string(length=8):
     letters = string.ascii_lowercase
     return ''.join(random.choice(letters) for _ in range(length))
 
-
 @app.post("/upload/")
 async def update_file(key: Optional[str] = Form(None), encoded_content: List[str] = Form(...)):
     try:
@@ -44,7 +43,6 @@ async def update_file(key: Optional[str] = Form(None), encoded_content: List[str
         return JSONResponse(content={"message": "File uploaded successfully","key": key})
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
 
 @app.get("/retrieve/{key}")
 async def retrieve_file(key: str, metadata_only: Optional[bool] = False):
@@ -67,7 +65,6 @@ async def retrieve_file(key: str, metadata_only: Optional[bool] = False):
 
 
     return binary_data_list   
-
 
 @app.put("/update/")
 async def update_files(key: str, encoded_content: List[str] = Form(...), new_key: Optional[str] = Form(None)):
@@ -119,7 +116,6 @@ async def update_files(key: str, encoded_content: List[str] = Form(...), new_key
                 output_file.write(encoded_items.encode())
 
         return JSONResponse(content={"message": "Files updated successfully"})
-
 
 @app.delete("/delete/")
 async def delete_files(key: str):
