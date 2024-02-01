@@ -15,10 +15,26 @@ Client interface for the storage service
 pip install s1_client
 ```
 
-### Usage 
-```
-from s1_client import crud
+## Usage 
 
-print(crud.post())
+### To save any file to the database i.e upload 
 ```
+from ciaos import save
+
+save(API_URL, key, value)
+```
+The Parameters 
+- API_URL being the URL to the fastapi server running database
+- key being the identity which u want to assign to the content you are uploading
+- value being the list of encoded data you are saving
+
+### To retrieve/get files from the database
+```
+from ciaos import retreieve
+retreieve(API_URL, key)
+
+```
+The Paramets :
+- API_URL being the URL to the fastapi server running database
+- key being the identity which u had  assign to the content, that you want to Get
 
