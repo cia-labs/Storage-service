@@ -3,7 +3,7 @@ from fastapi import FastAPI, HTTPException, Form
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional, List
-from app.crud.crud import create_connection,create_image_metadata, get_metadata, delete_metadata,check_key_existence,db_file
+from server.app.crud.crud import create_connection,create_image_metadata, get_metadata, delete_metadata,db_file
 import os
 import string
 import random
@@ -24,13 +24,14 @@ def generate_random_string(length=8):
     letters = string.ascii_lowercase
     return ''.join(random.choice(letters) for _ in range(length))
 
+
 @app.post("/upload/")
-async def update_file(key: str = Form(...), encoded_content: List[str] = Form(...)):
+async def update_file(key: Optional[str] = Form(None), encoded_content: List[str] = Form(...)):
     try:
-        if check_key_existence(key):
-            raise HTTPException(status_code=400, detail="Key already exists")
         if not key:
             key = generate_random_string()
+        if not encoded_content:
+            raise HTTPException(status_code=422, detail="Field 'encoded_content' cannot be empty")
         key_directory = f"{key}"
         directory_key = f"./storage/{key_directory}"
         os.makedirs(directory_key , exist_ok=True)
@@ -40,13 +41,16 @@ async def update_file(key: str = Form(...), encoded_content: List[str] = Form(..
                 with open(output_file_path, 'wb') as output_file:
                     output_file.write(encoded_items.encode())
         create_image_metadata( key, key_directory)
-        return JSONResponse(content={"message": "File uploaded successfully"})
+        return JSONResponse(content={"message": "File uploaded successfully","key": key})
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @app.get("/retrieve/{key}")
 async def retrieve_file(key: str, metadata_only: Optional[bool] = False):
-    path = "./storage/"+get_metadata(key)
+    filepath = get_metadata(key)
+    path = f"./storage/{filepath}"
+
     if not path or not os.path.exists(path):
         raise HTTPException(status_code=404, detail="Key not found")
 
@@ -67,10 +71,12 @@ async def retrieve_file(key: str, metadata_only: Optional[bool] = False):
 
 @app.put("/update/")
 async def update_files(key: str, encoded_content: List[str] = Form(...), new_key: Optional[str] = Form(None)):
-    path = "./storage/"+get_metadata(key)
+    filepath = get_metadata(key)
 
-    if not path or not os.path.exists(path):
+    if filepath is None:
         raise HTTPException(status_code=404, detail="Key not found")
+
+    path = f"./storage/{filepath}"
 
     if new_key and new_key != key:
  
@@ -113,6 +119,7 @@ async def update_files(key: str, encoded_content: List[str] = Form(...), new_key
                 output_file.write(encoded_items.encode())
 
         return JSONResponse(content={"message": "Files updated successfully"})
+
 
 @app.delete("/delete/")
 async def delete_files(key: str):

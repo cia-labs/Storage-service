@@ -1,120 +1,93 @@
-import base64
-import os
-import requests
+from fastapi.testclient import TestClient
+from server.main import app 
 
-new_key="Enter new key or None if no value provided"
-key="Enter the key"
-API_URL = "API_URL_SERVER"
-directory_path = r"Directory_path"
+client = TestClient(app)
 
+def test_upload_success():
+    key = None  
+    encoded_content = ["encoded_content_1", "encoded_content_2"]
+    
+    response = client.post("/upload/", data={"key": key, "encoded_content": encoded_content})
 
-def encode_and_store_files(directory_path):
-    encoded_content = []
-    try:
+    assert response.status_code == 200
 
-        for filename in os.listdir(directory_path):
-            file_path = os.path.join(directory_path, filename)
+    response_data = response.json()
+    generated_key = response_data.get("key", None)
+    assert response_data == {"message": "File uploaded successfully", "key": generated_key}
 
-            if os.path.isfile(file_path):
-                with open(file_path, 'rb') as file:
-                    file_content = file.read()
+def test_upload_fail():
+    response = client.post(
+        "/upload/",
+        data={"key": "testkey", "encoded_content": []}
+    )
+    print(response.json())
+    assert response.status_code == 422
+    assert response.json() == {
+        "detail": [
+            {
+                "type": "missing",
+                "loc": ["body", "encoded_content"],
+                "msg": "Field required",
+                "input": None,
+                "url": "https://errors.pydantic.dev/2.5/v/missing"
+            }
+        ]
+    }
 
-                encoded_file_content = base64.b64encode(file_content)
-                encoded_content.append(encoded_file_content)
+def test_retrieve_file_success():
 
-        try:
-            data = {"key": key, "encoded_content": encoded_content}
-            response = requests.post(f"{API_URL}/upload/", data=data)
+    key = "test_key"
+    encoded_content = ["encoded_content_1", "encoded_content_2"]
+    client.post("/upload/", data={"key": key, "encoded_content": encoded_content})
 
-            if response.status_code == 200:
-                print("Update successful:", response.json())
-            else:
-                raise requests.HTTPError(response.text)
+    response = client.get(f"/retrieve/{key}")
 
-        except requests.HTTPError as e:
-            print("Error:", e)
+    assert response.status_code == 200
+    assert isinstance(response.json(), list)
 
+def test_retrieve_file_key_not_found():
+    non_existent_key = "nonexistentkey"
 
-    except Exception as e:
-        print(f"Error: {e}")
+    response = client.get(f"/retrieve/{non_existent_key}")
 
-
-def get_file(key):
-    try:
-
-        directory_key = f"./{key}_new"
-        os.makedirs(directory_key , exist_ok=True)
-        try:
-
-            response= requests.get(f"{API_URL}/retrieve/{key}")
-            if response.status_code == 200:
-                print("Update successful:", response.json())
-                return response.json()
-            else:
-                raise requests.HTTPError(response.text)
-
-        except requests.HTTPError as e:
-            print("Error:", e)
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Key not found"}
 
 
-        for index, file in enumerate(response):
+def test_update_files_success():
+    key = "test_key"
+    new_key = "new_test_key"
+    encoded_content = ["encoded_content_1", "encoded_content_2"]
 
-            decoded_data = base64.b64decode(file)
-            filename = f"file_{index}.jpg"
-            output_file_path = os.path.join(directory_key, filename)
+    response = client.post("/upload/", data={"key": key, "encoded_content": encoded_content})
+    assert response.status_code == 200
 
-            with open(output_file_path, "wb") as output_file:
-                output_file.write(decoded_data)
+    response = client.put(f"/update/?key={key}&new_key={new_key}", data={"encoded_content": encoded_content})
+    assert response.status_code == 200
+    assert response.json() == {"message": "Files updated successfully"}
 
-            print(f"File {index} written to {output_file_path}")
+def test_update_files_no_key_found():
+    key = "non_existent_key"
+    new_key = "new_test_key"
+    encoded_content = ["encoded_content_1", "encoded_content_2"]
 
-    except Exception as e:
-        print("Error:", e)
+    response = client.put(f"/update/?key={key}&new_key={new_key}", data={"encoded_content": encoded_content})
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Key not found"}
 
-def update(API_URL, key,directory_path, new_key=None):
-    try:
-        encoded_content = []
+def test_delete_files_success():
+    key = "test_key"
+    encoded_content = ["encoded_content_1", "encoded_content_2"]
 
-        try:
+    client.post("/upload/", data={"key": key, "encoded_content": encoded_content})
 
-            for filename in os.listdir(directory_path):
-                file_path = os.path.join(directory_path, filename)
+    response = client.delete(f"/delete/?key={key}")
+    assert response.status_code == 200
+    assert response.json() == {"message": f"Folder '{key}' and its contents deleted successfully"}
 
-                if os.path.isfile(file_path):
-                    with open(file_path, 'rb') as file:
-                        file_content = file.read()
+def test_delete_files_no_key_found():
+    non_existent_key = "non_existent_key"
 
-                    encoded_file_content = base64.b64encode(file_content)
-                    encoded_content.append(encoded_file_content)
-
-        except Exception as e:
-            print(f"Error: {e}")
-
-        data = {"new_key":new_key,"encoded_content": encoded_content}
-        response = requests.put(f"{API_URL}/update/?key={key}", data=data)
-
-        if response.status_code == 200:
-            print("Update successful:", response.json())
-        else:
-            raise requests.HTTPError(response.text)
-
-    except requests.HTTPError as e:
-        print("Error:", e)
-
-def delete(API_URL, key):
-    try:
-        response = requests.delete(f"{API_URL}/delete/?key={key}")
-
-        if response.status_code == 200:
-            print("Update successful:", response.json())
-        else:
-            raise requests.HTTPError(response.text)
-
-    except requests.HTTPError as e:
-        print("Error:", e)
-
-
-# encode_and_store_files(directory_path)
-# get_file(key)
-# update(API_URL,key,directory_path,new_key)
-# delete(API_URL,key)
+    response = client.delete(f"/delete/?key={non_existent_key}")
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Folder not found"}
