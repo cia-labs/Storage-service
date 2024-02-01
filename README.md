@@ -12,7 +12,7 @@ Client interface for the storage service
 ### Installation
 
 ```bash
-pip install s1_client
+pip install ciaos
 ```
 
 ## Usage 
