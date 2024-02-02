@@ -1,7 +1,7 @@
 import pytest
 import requests
 from unittest.mock import patch
-from clientinterface import save, get
+from ciaos import save, get, update, delete
 
 
 
@@ -76,3 +76,67 @@ def test_retrieve_failure(mock_requests_get):
     assert result == error_response
 
     mock_requests_get.assert_called_once_with(f"{API_URL}/get/{key}")
+
+@pytest.fixture
+def mock_requests_put():
+    with patch("requests.put") as mock_put:
+        yield mock_put
+
+def test_update_success(mock_requests_put):
+    API_URL = "http://127.0.0.1:8000"
+    key = "testkey"
+    new_key = "new_testkey"
+    value = ["encoded_content_1", "encoded_content_2"]
+
+    success_message = {'message': 'Update successful'}
+    mock_requests_put.return_value.status_code = 200
+    mock_requests_put.return_value.json.return_value = success_message
+
+    update(API_URL, key, value, new_key)
+
+    mock_requests_put.assert_called_once_with(f"{API_URL}/update/?key={key}", data={"new_key": new_key, "encoded_content": value})
+
+def test_update_failure(mock_requests_put):
+    API_URL = "http://127.0.0.1:8000"
+    key = "testkey"
+    new_key = "new_testkey"
+    value = ["encoded_content_1", "encoded_content_2"]
+
+    error_message = 'Invalid data'
+    mock_requests_put.return_value.status_code = 400
+    mock_requests_put.return_value.text = error_message
+
+    with pytest.raises(requests.HTTPError):
+        update(API_URL, key, value, new_key)
+
+    mock_requests_put.assert_called_once_with(f"{API_URL}/update/?key={key}", data={"new_key": new_key, "encoded_content": value})
+
+@pytest.fixture
+def mock_requests_delete():
+    with patch("requests.delete") as mock_delete:
+        yield mock_delete
+
+def test_delete_success(mock_requests_delete):
+    API_URL = "http://127.0.0.1:8000"
+    key = "testkey"
+
+    success_message = {'message': 'Delete successful'}
+    mock_requests_delete.return_value.status_code = 200
+    mock_requests_delete.return_value.json.return_value = success_message
+
+    delete(API_URL, key)
+
+    mock_requests_delete.assert_called_once_with(f"{API_URL}/delete/?key={key}")
+
+def test_delete_failure(mock_requests_delete):
+    API_URL = "http://127.0.0.1:8000"
+    key = "testkey"
+
+    error_message = 'Key not found'
+    mock_requests_delete.return_value.status_code = 404
+    mock_requests_delete.return_value.text = error_message
+
+    with pytest.raises(requests.HTTPError):
+        delete(API_URL, key)
+
+    mock_requests_delete.assert_called_once_with(f"{API_URL}/delete/?key={key}")
