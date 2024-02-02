@@ -70,9 +70,12 @@ def delete_metadata(key):
     cursor.close()
 
 def check_key_existence(key):
-    connection = create_connection(db_file)
-    cursor = connection.cursor()
-    cursor.execute("SELECT id FROM store WHERE key=?", (key,))
-    result = cursor.fetchone()
-    connection.close()
-    return result is not None
+        connection = create_connection(db_file)
+        cursor = connection.cursor()
+        cursor.execute("SELECT id FROM store WHERE key=?", (key,))
+        result = cursor.fetchone()
+        connection.close()
+        if result is None:
+            return False
+        else:
+            return True

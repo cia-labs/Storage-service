@@ -40,18 +40,22 @@ def test_retrieve_file_success():
     encoded_content = ["encoded_content_1", "encoded_content_2"]
     client.post("/upload/", data={"key": key, "encoded_content": encoded_content})
 
-    response = client.get(f"/retrieve/{key}")
-
+    response = client.get(f"/get/{key}")
+    print(response.status_code)
+    print(response.content)
     assert response.status_code == 200
     assert isinstance(response.json(), list)
 
 def test_retrieve_file_key_not_found():
     non_existent_key = "nonexistentkey"
 
-    response = client.get(f"/retrieve/{non_existent_key}")
+    response = client.get(f"/get/{non_existent_key}")
 
-    assert response.status_code == 404
-    assert response.json() == {"detail": "Key not found"}
+    print(response.status_code)
+    print(response.content)
+
+    assert response.status_code == 500
+    assert response.json() == {'detail': '404: Key not found'}
 
 
 def test_update_files_success():

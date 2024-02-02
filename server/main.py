@@ -3,7 +3,7 @@ from fastapi import FastAPI, HTTPException, Form
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional, List
-from server.app.crud.crud import create_connection,create_image_metadata, get_metadata, delete_metadata,db_file
+from server.app.crud.crud import check_key_existence,create_connection,create_image_metadata, get_metadata, delete_metadata,db_file
 import os
 import string
 import random
@@ -44,27 +44,32 @@ async def update_file(key: Optional[str] = Form(None), encoded_content: List[str
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/retrieve/{key}")
+@app.get("/get/{key}")
 async def retrieve_file(key: str, metadata_only: Optional[bool] = False):
-    filepath = get_metadata(key)
-    path = f"./storage/{filepath}"
+    try:
+        if not check_key_existence(key):
+            raise HTTPException(status_code=404, detail="Key not found")
 
-    if not path or not os.path.exists(path):
-        raise HTTPException(status_code=404, detail="Key not found")
+        filepath = get_metadata(key)
+        path = f"./storage/{filepath}"
 
-    binary_data_list = []
+        if not path or not os.path.exists(path):
+           raise HTTPException(status_code=404, detail="Key not found")
 
-    for filename in os.listdir(path):
-        file_path = os.path.join(path, filename)
+        binary_data_list = []
 
-        if os.path.isfile(file_path):
-            with open(file_path, "rb") as file:
-                binary_data = file.read()
+        for filename in os.listdir(path):
+            file_path = os.path.join(path, filename)
 
-                binary_data_list.append(binary_data)
+            if os.path.isfile(file_path):
+                with open(file_path, "rb") as file:
+                    binary_data = file.read()
+                    binary_data_list.append(binary_data)
 
+        return binary_data_list
 
-    return binary_data_list   
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))   
 
 @app.put("/update/")
 async def update_files(key: str, encoded_content: List[str] = Form(...), new_key: Optional[str] = Form(None)):
