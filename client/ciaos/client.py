@@ -24,6 +24,7 @@ def get(API_URL, key):
             return response.json()
         else: 
             print("Error:", response.json())
+            
             return response.json()
        
     except requests.HTTPError as e:
@@ -31,7 +32,7 @@ def get(API_URL, key):
 
 
 
-def update(API_URL,key,value,new_key=None):
+def update(API_URL, key, value, new_key=None):
     try:
         data = {"new_key": new_key, "encoded_content": value}
         response = requests.put(f"{API_URL}/update/?key={key}", data=data)
@@ -41,11 +42,13 @@ def update(API_URL,key,value,new_key=None):
         else:
             raise requests.HTTPError(response.text)
 
+        return response  
+
     except requests.HTTPError as e:
         print("Error:", e)
+        raise 
 
-
-def delete(API_URL,key):
+def delete(API_URL, key):
     try:
         response = requests.delete(f"{API_URL}/delete/?key={key}")
 
@@ -54,5 +57,8 @@ def delete(API_URL,key):
         else:
             raise requests.HTTPError(response.text)
 
+        return response  
+
     except requests.HTTPError as e:
         print("Error:", e)
+        raise  
