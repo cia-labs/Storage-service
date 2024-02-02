@@ -1,1 +1,1 @@
-from .client import save, retreieve, update, delete
+from .client import save, get, update, delete

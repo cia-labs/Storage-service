@@ -9,22 +9,26 @@ def save(API_URL, key, value):
         if response.status_code == 200:
             print("Update successful:", response.json())
         else:
-            raise requests.HTTPError(response.text)
+            print("Error:", response.text)
+        return response 
 
     except requests.HTTPError as e:
-        print("Error:", e)
+        print("HTTPError:", e)
+         
 
-def retreieve(API_URL, key):
+def get(API_URL, key):
     try:
-        response= requests.get(f"{API_URL}/retrieve/{key}")
+        response= requests.get(f"{API_URL}/get/{key}")
         if response.status_code == 200:
-            return response.json()
             print("Update successful:", response.json())
-        else:
-            raise requests.HTTPError(response.text)
-
+            return response.json()
+        else: 
+            print("Error:", response.json())
+            return response.json()
+       
     except requests.HTTPError as e:
         print("Error:", e)
+
 
 
 def update(API_URL,key,value,new_key=None):

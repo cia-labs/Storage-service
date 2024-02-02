@@ -1,98 +1,78 @@
-#import the module here
-#define tha path to the test files below to encode and push to API server
-import base64
-import os
+import pytest
 import requests
-
-#to Test retrieve fucntion
-def get_file(key):
-    try:
-        directory_key = f"./{key}_new"
-        os.makedirs(directory_key , exist_ok=True)
-        files = retreieve(key)
-        for index, file in enumerate(files):
-        
-            decoded_data = base64.b64decode(file)
-            filename = f"file_{index}.jpg"
-            output_file_path = os.path.join(directory_key, filename)
-            with open(output_file_path, "wb") as output_file:
-                output_file.write(decoded_data)
-            print(f"File {index} written to {output_file_path}")
-    except Exception as e:
-        print("Error:", e)
-#MODIFY THE BELOW PARAMETERS TO TEST retrieve FUCNTION 
-'''key="test1"
-get_file(key)'''
+from unittest.mock import patch
+from clientinterface import save, get
 
 
-#to Test save fucntion
-def encode_and_store_files(directory_path):
-    encoded_content = []
+
+
+@pytest.fixture
+def mock_requests_post():
+    with patch("requests.post") as mock_post:
+        yield mock_post
+
+def test_save_success(mock_requests_post):
     API_URL = "http://127.0.0.1:8000"
-    key = "string_test2"
+    key = "testkey"
+    value = ["encoded_content_1", "encoded_content_2"]
 
-    try:
-        # Iterate over each file in the specified directory
-        for filename in os.listdir(directory_path):
-            file_path = os.path.join(directory_path, filename)
+    success_message = {'message': 'File uploaded successfully', 'key': key}
+    mock_requests_post.return_value.status_code = 200
+    mock_requests_post.return_value.json.return_value = success_message
 
-            if os.path.isfile(file_path):
-                # Read the content of the file
-                with open(file_path, 'rb') as file:
-                    file_content = file.read()
+    response = save(API_URL, key, value)
 
-                # Encode the file content to base64
-                encoded_file_content = base64.b64encode(file_content)
+    assert response.status_code == 200
+    assert response.json() == success_message
 
-                # Append the encoded content to the list
-                encoded_content.append(encoded_file_content)
+    mock_requests_post.assert_called_once_with(f"{API_URL}/upload/", data={"key": key, "encoded_content": value})
 
-        # Pass the list of encoded content to the next file
-        save(API_URL, key,encoded_content)
+def test_save_failure(mock_requests_post):
+    API_URL = "http://127.0.0.1:8000"
+    key = "testkey"
+    value = []
+    error_message = '{"detail":[{"type":"missing","loc":["body","encoded_content"],"msg":"Field required","input":null,"url":"https://errors.pydantic.dev/2.5/v/missing"}]}'
+    mock_requests_post.return_value.status_code = 422  
+    mock_requests_post.return_value.text = error_message
+
+    response = save(API_URL, key, value)
+
+    assert response.status_code == 422
+    assert response.text == error_message
+
+    mock_requests_post.assert_called_once_with(f"{API_URL}/upload/", data={"key": key, "encoded_content": value})
+
+@pytest.fixture
+def mock_requests_get():
+    with patch("requests.get") as mock_get:
+        yield mock_get
+
+def test_retrieve_success(mock_requests_get):
+    API_URL = "http://127.0.0.1:8000"
+    key = "test_key"
+    value = ["encoded_content_1", "encoded_content_2"]
+    save(API_URL, key, value)
+    success_response = ["encoded_content_1", "encoded_content_2"]
+
+    mock_requests_get.return_value.status_code = 200
+    mock_requests_get.return_value.json.return_value = success_response
+
+    result = get(API_URL, key)
+
+    assert result == success_response
+
+    mock_requests_get.assert_called_once_with(f"{API_URL}/get/{key}")
+
+def test_retrieve_failure(mock_requests_get):
+    API_URL = "http://127.0.0.1:8000"
+    key = "nonexistent_key"
+    error_response = {"detail": "Key not found"}
+
+    mock_requests_get.return_value.status_code = 404
+    mock_requests_get.return_value.json.return_value = error_response
+
+    result = get(API_URL, key)
     
-    except Exception as e:
-        print(f"Error: {e}")
+    assert result == error_response
 
-#MODIFY THE BELOW PARAMETERS TO TEST UPLOAD FUCNTION 
-'''if __name__ == "__main__":
-    directory_path = 'Path to directory of files'
-    encode_and_store_files(directory_path)'''
-
-#to Test the update fucntion 
-
-def update(API_URL, key,directory_path, new_key=None):
-    try:
-        encoded_content = []
-
-        try:
-
-            for filename in os.listdir(directory_path):
-                file_path = os.path.join(directory_path, filename)
-
-                if os.path.isfile(file_path):
-                    with open(file_path, 'rb') as file:
-                        file_content = file.read()
-
-                    encoded_file_content = base64.b64encode(file_content)
-                    encoded_content.append(encoded_file_content)
-
-        except Exception as e:
-            print(f"Error: {e}")
-
-        data = {"new_key":new_key,"encoded_content": encoded_content}
-        response = requests.put(f"{API_URL}/update/?key={key}", data=data)
-
-        if response.status_code == 200:
-            print("Update successful:", response.json())
-        else:
-            raise requests.HTTPError(response.text)
-
-    except requests.HTTPError as e:
-        print("Error:", e)\
-#MODIFY THE BELOW PARAMETERS TO TEST UPDATE FUCNTION 
-'''
-new_key="Enter new key value or None if no new Key value"
-key="Enter the key value"
-API_URL = "API_URL_SERVER"
-directory_path = r"Directory Path"
-'''
+    mock_requests_get.assert_called_once_with(f"{API_URL}/get/{key}")
