@@ -35,7 +35,7 @@ get(API_URL, key)
 - API_URL: the url to the fastapi server
 - key: the key value which can be used to identify and fetch the data from Database
 
-### Update
+### UPDATE
 ```
 from ciaos import update
 
@@ -43,7 +43,7 @@ update(API_URL,key,value,new_key):
 ```
 
 
-### Delete
+### DELETE
 ```
 from ciaos import delete
 
