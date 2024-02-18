@@ -39,8 +39,9 @@ get(API_URL, key)
 ```
 from ciaos import update
 
-update(API_URL,key,value,new_key):
+update(API_URL,key,value,new_key) 
 ```
+- NOTE: The new_key is an optional parameter. To be used if and only if you want to update the key. 
 
 
 ### DELETE
