@@ -1,13 +1,11 @@
-# Storage-Service
-Multi node, General purpose Kv store/ Value store. 
+# CIAOS - CIA's Object Store
+Multi node, General purpose KV Store. 
 
 HLD - High Level Design
 https://drive.google.com/file/d/1BWJzX_X4IUtnwxcTL0QxThmeq6kVCHHz/view?usp=drive_link
 
 
-## CIAOS
-
-Client interface for the storage service
+Client SDK
 
 ### Installation
 
@@ -26,7 +24,7 @@ save(API_URL, key, value)
 - key: the key value which can be used to identify your content in Database
 - Value: the Base64 encoded binary data that you want to save / upload to database
 ---
-Note: A random Key can be generated , if no key is passed to save parameters 
+Note: A random Key will be generated , if no key is passed to save parameters 
 ---
 ### GET
 ```
