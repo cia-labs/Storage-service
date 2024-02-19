@@ -8,6 +8,7 @@ import os
 import string
 import random
 from fastapi import HTTPException
+
 app = FastAPI()
 
 app.add_middleware(
@@ -24,8 +25,8 @@ def generate_random_string(length=8):
     letters = string.ascii_lowercase
     return ''.join(random.choice(letters) for _ in range(length))
 
-@app.post("/update_file/")
-async def update_file(key: Optional[str] = Form(None), encoded_content: List[str] = Form(...)):
+@app.post("/upload/")
+async def upload(key: Optional[str] = Form(None), encoded_content: List[str] = Form(...)):
     try:
         if not key:
             key = generate_random_string()

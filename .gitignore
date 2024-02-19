@@ -161,3 +161,4 @@ cython_debug/
 #.idea/
 
 server/app/crud/db_name.db
+server/storage

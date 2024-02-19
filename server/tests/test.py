@@ -7,7 +7,7 @@ def test_upload_success():
     key = None  
     encoded_content = ["encoded_content_1", "encoded_content_2"]
     
-    response = client.post("/update_file/", data={"key": key, "encoded_content": encoded_content})
+    response = client.post("/upload/", data={"key": key, "encoded_content": encoded_content})
 
     assert response.status_code == 200
 
@@ -17,7 +17,7 @@ def test_upload_success():
 
 def test_upload_fail():
     response = client.post(
-        "/update_file/",
+        "/upload/",
         data={"key": "testkey", "encoded_content": []}
     )
     print(response.json())
@@ -38,7 +38,7 @@ def test_retrieve_file_success():
 
     key = "test_key"
     encoded_content = ["encoded_content_1", "encoded_content_2"]
-    client.post("/update_file/", data={"key": key, "encoded_content": encoded_content})
+    client.post("/upload/", data={"key": key, "encoded_content": encoded_content})
 
     response = client.get(f"/get/{key}")
     print(response.status_code)
@@ -63,7 +63,7 @@ def test_update_files_success():
     new_key = "new_test_key"
     encoded_content = ["encoded_content_1", "encoded_content_2"]
 
-    response = client.post("/update_file/", data={"key": key, "encoded_content": encoded_content})
+    response = client.post("/upload/", data={"key": key, "encoded_content": encoded_content})
     assert response.status_code == 200
 
     response = client.put(f"/update/?key={key}&new_key={new_key}", data={"encoded_content": encoded_content})
@@ -83,7 +83,7 @@ def test_delete_files_success():
     key = "test_key"
     encoded_content = ["encoded_content_1", "encoded_content_2"]
 
-    client.post("/update_file/", data={"key": key, "encoded_content": encoded_content})
+    client.post("/upload/", data={"key": key, "encoded_content": encoded_content})
 
     response = client.delete(f"/delete/?key={key}")
     assert response.status_code == 200
