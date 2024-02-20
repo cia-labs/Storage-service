@@ -1,5 +1,5 @@
 # Python version requirement
-python>=3.9
+python>=3.10
 
 # Server-side dependencies
 fastapi==0.70.0
