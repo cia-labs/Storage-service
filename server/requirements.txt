@@ -1,0 +1,8 @@
+# Python version requirement
+python>=3.9
+
+# Server-side dependencies
+fastapi==0.70.0
+uvicorn==0.15.0
+pytest==6.2.5
+requests==2.26.0
