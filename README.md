@@ -1,6 +1,6 @@
 # CIAOS - CIA's Object Store
 
-##System Offerings that are currently being built. 
+## System Offerings that are currently being built. 
 1. Fault Tolerance - Uses Erasure Coding to Optimise Data replication - Currently being built by [@Tejus_CJ]([https://github.com/username](https://github.com/Tejas-ChandraShekarRaju)).
 2. Search - Seeks contribution for design.
 3. Availability - Seeks contribution for design. 
