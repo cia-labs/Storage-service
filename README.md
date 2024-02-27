@@ -1,6 +1,9 @@
 # CIAOS - CIA's Object Store
 
-Multi node, General purpose KV Store.
+##System Offerings that are currently being built. 
+1. Fault Tolerance - Uses Erasure Coding to Optimise Data replication - Currently being built by [@Tejus_CJ]([https://github.com/username](https://github.com/Tejas-ChandraShekarRaju)).
+2. Search - Seeks contribution for design.
+3. Availability - Seeks contribution for design. 
 
 HLD - High Level Design
 https://drive.google.com/file/d/1BWJzX_X4IUtnwxcTL0QxThmeq6kVCHHz/view?usp=drive_link
