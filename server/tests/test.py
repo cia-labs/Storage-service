@@ -1,5 +1,14 @@
 from fastapi.testclient import TestClient
-from server.main import app 
+import pydantic
+import os
+import sys
+
+pydantic_version = '.'.join(pydantic.__version__.split('.')[:2])
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_path = os.path.join(current_dir, '..')  # Go up two levels to reach /Ciaos/server/
+sys.path.append(parent_path)
+from main import app
 
 client = TestClient(app)
 
@@ -29,7 +38,7 @@ def test_upload_fail():
                 "loc": ["body", "encoded_content"],
                 "msg": "Field required",
                 "input": None,
-                "url": "https://errors.pydantic.dev/2.5/v/missing"
+                "url": f"https://errors.pydantic.dev/{pydantic_version}/v/missing"
             }
         ]
     }
