@@ -35,11 +35,11 @@ The above command line spins up a Fastapi server on you localhost , The API has 
 
 **UPLOAD** / ```/upload```: 
 
->Expect a Base64  encoded byte data, which needs to be uploaded in a List, the List can have n Number of Base64 encoded strings which can represent any file etc.
+- Expect a Base64  encoded byte data, which needs to be uploaded in a List, the List can have n Number of Base64 encoded strings which can represent any file etc.
 
->A key can also be passed which can be used to perform delete, update, get operation on uploaded content, the key is optional as the Storage service auto generates a new key for you if a key is not pasased.
+- A key can also be passed which can be used to perform delete, update, get operation on uploaded content, the key is optional as the Storage service auto generates a new key for you if a key is not pasased.
 
->>The API returns a successful message on upload with the key name
+- - The API returns a successful message on upload with the key name
 
 ---
 
@@ -48,9 +48,9 @@ The above command line spins up a Fastapi server on you localhost , The API has 
 
 #### To comunicat through the url where the api is hosted, in order to interact with add ```/get``` path over URL
 
->Pass the key paramter of the contents which you want to retrieve from the storage service 
+- Pass the key paramter of the contents which you want to retrieve from the storage service 
 
->> The Get will return a Base64 Byte string data of List which contains all the content appended in a List , which is tagged with the key pair which you passed
+- - The Get will return a Base64 Byte string data of List which contains all the content appended in a List , which is tagged with the key pair which you passed
 
 
 
@@ -58,14 +58,14 @@ The above command line spins up a Fastapi server on you localhost , The API has 
 - to delete the content which was uploaded, given that you have the key of the uploaded content
 #### To comunicat through the url where the api is hosted, in order to interact with add ```/delete``` path over URL
 
-> Just like **GET** vene delete needs a key to delete the content from storage service
+- Just like **GET** vene delete needs a key to delete the content from storage service
 
 
 ## **Update** 
 - to update the content with the new content given that a key is passed , (Note: you can also generate a new key if you would like)
 #### To comunicat through the url where the api is hosted, in order to interact with add add ```/update``` path over URL
 
-> A key is passed with the new encoded base64 content which is needs to be updated with for the given key, you can also give a new key so that a new copy of the content which belongs to the key is created and also append it with the new value which is passed
+- A key is passed with the new encoded base64 content which is needs to be updated with for the given key, you can also give a new key so that a new copy of the content which belongs to the key is created and also append it with the new value which is passed
 
 ---
 ---
