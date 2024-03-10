@@ -23,7 +23,10 @@ connection=create_connection(db_file)
 
 def generate_random_string(length=8):
     letters = string.ascii_lowercase
-    return ''.join(random.choice(letters) for _ in range(length))
+    while True:
+        new_key = ''.join(random.choice(letters) for _ in range(length))
+        if not check_key_existence(new_key):
+            return new_key
 
 @app.post("/upload/")
 async def upload(key: Optional[str] = Form(None), encoded_content: List[str] = Form(...)):
