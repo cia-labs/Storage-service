@@ -12,7 +12,7 @@
 
 ```bash
 git clone https://github.com/cia-labs/Storage-service.git
-cd Storage-service
+cd Storage-service/server
 ```
 ### Install Dependencies
 
