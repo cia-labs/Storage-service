@@ -146,3 +146,5 @@ async def delete_files(key: str):
         raise HTTPException(status_code=404, detail="Folder not found")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error deleting folder: {str(e)}")
+    
+    return {"message": f"Folder '{key}' and its contents deleted successfully"}
