@@ -56,3 +56,6 @@ from ciaos import delete
 delete(API_URL,key)
 ```
 
+## Developer's Corner
+https://github.com/cia-labs/Storage-service/blob/main/docs.md
+
