@@ -2,7 +2,7 @@ import shutil
 from fastapi import FastAPI, HTTPException, Form
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from typing import Optional, List
+from typing import Optional
 from app.crud.crud import check_key_existence,create_connection,create_image_metadata, get_metadata, delete_metadata,db_file
 import os
 import string
@@ -26,7 +26,7 @@ def generate_random_string(length=8):
     return ''.join(random.choice(letters) for _ in range(length))
 
 @app.post("/upload/")
-async def upload(key: Optional[str] = Form(None), encoded_content: List[str] = Form(...)):
+async def upload(key: Optional[str] = Form(None), encoded_content: str = Form(...)):
     try:
         if not key:
             key = generate_random_string()
@@ -34,14 +34,19 @@ async def upload(key: Optional[str] = Form(None), encoded_content: List[str] = F
             raise HTTPException(status_code=422, detail="Field 'encoded_content' cannot be empty")
         key_directory = f"{key}"
         directory_key = f"./storage/{key_directory}"
-        os.makedirs(directory_key , exist_ok=True)
-        for i, encoded_items in enumerate(encoded_content, start=1):
-                output_file_path = os.path.join(directory_key, f'encodedtxt{i}.txt')
+        os.makedirs(directory_key, exist_ok=True)
+        
+        separated_strings = encoded_content.split(',')
+        existing_files_count = len([name for name in os.listdir(directory_key) if name.startswith("encodedtxt")])
+        
+        for i, encoded_item in enumerate(separated_strings, start=existing_files_count + 1):
+            output_file_path = os.path.join(directory_key, f'encodedtxt{i}.txt')
 
-                with open(output_file_path, 'wb') as output_file:
-                    output_file.write(encoded_items.encode())
-        create_image_metadata( key, key_directory)
-        return JSONResponse(content={"message": "File uploaded successfully","key": key})
+            with open(output_file_path, 'w') as output_file:
+                output_file.write(f"{encoded_item}")
+                
+        create_image_metadata(key, key_directory)
+        return JSONResponse(content={"message": "Files uploaded successfully", "key": key})
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -71,58 +76,64 @@ async def retrieve_file(key: str, metadata_only: Optional[bool] = False):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))   
+    
 
 @app.put("/update/")
-async def update_files(key: str, encoded_content: List[str] = Form(...), new_key: Optional[str] = Form(None)):
-    filepath = get_metadata(key)
+async def update_files(key: str, encoded_content: str = Form(...), new_key: Optional[str] = Form(None)):
+    try:
+        filepath = get_metadata(key)
 
-    if filepath is None:
-        raise HTTPException(status_code=404, detail="Key not found")
+        if filepath is None:
+            raise HTTPException(status_code=404, detail="Key not found")
 
-    path = f"./storage/{filepath}"
+        path = f"./storage/{filepath}"
 
-    if new_key and new_key != key:
- 
-        new_key_directory = f"./storage/{new_key}"
-        os.makedirs(new_key_directory, exist_ok=True)
-        create_image_metadata(new_key, new_key_directory)
-        path="./storage/"+get_metadata(key)
-        #TO-DO : Add the prefix or suffix to the folder name 
-        new_path = new_key_directory
+        if new_key and new_key != key:
+            new_key_directory = f"./storage/{new_key}"
+            os.makedirs(new_key_directory, exist_ok=True)
+            create_image_metadata(new_key, new_key_directory)
+            path = f"./storage/{get_metadata(key)}"
+            new_path = new_key_directory
 
-        for filename in os.listdir(path):
-            source_file_path = os.path.join(path, filename)
-            destination_file_path = os.path.join(new_path, filename)
-            shutil.copy2(source_file_path, destination_file_path)
+            for filename in os.listdir(path):
+                source_file_path = os.path.join(path, filename)
+                destination_file_path = os.path.join(new_path, filename)
+                shutil.copy2(source_file_path, destination_file_path)
 
-        existing_files = [f for f in os.listdir(new_path) if f.startswith("encodedtxt")]
-        if existing_files:
-            max_existing_index = max(int(f.split("encodedtxt")[1].split(".")[0]) for f in existing_files)
-        else:
-            max_existing_index = 0
+            existing_files = [f for f in os.listdir(new_path) if f.startswith("encodedtxt")]
+            if existing_files:
+                max_existing_index = max(int(f.split("encodedtxt")[1].split(".")[0]) for f in existing_files)
+            else:
+                max_existing_index = 0
 
-        for i, encoded_items in enumerate(encoded_content, start=max_existing_index+1):
-            output_file_path = os.path.join(new_path, f'encodedtxt{i}.txt')
+            separated_strings = encoded_content.split(',')
 
-            with open(output_file_path, 'wb') as output_file:
-                output_file.write(encoded_items.encode())
-        
-        return JSONResponse(content={"message": "Files updated successfully"})
+            for i, encoded_item in enumerate(separated_strings, start=max_existing_index + 1):
+                output_file_path = os.path.join(new_path, f'encodedtxt{i}.txt')
 
-    if path or os.path.exists(path):
-        existing_files = [f for f in os.listdir(path) if f.startswith("encodedtxt")]
-        if existing_files:
-            max_existing_index = max(int(f.split("encodedtxt")[1].split(".")[0]) for f in existing_files)
-        else:
-            max_existing_index = 0
+                with open(output_file_path, 'w') as output_file:
+                    output_file.write(encoded_item)
 
-        for i, encoded_items in enumerate(encoded_content, start=max_existing_index+1):
-            output_file_path = os.path.join(path, f'encodedtxt{i}.txt')
+            return JSONResponse(content={"message": "Files updated successfully"})
 
-            with open(output_file_path, 'wb') as output_file:
-                output_file.write(encoded_items.encode())
+        if path or os.path.exists(path):
+            existing_files = [f for f in os.listdir(path) if f.startswith("encodedtxt")]
+            if existing_files:
+                max_existing_index = max(int(f.split("encodedtxt")[1].split(".")[0]) for f in existing_files)
+            else:
+                max_existing_index = 0
 
-        return JSONResponse(content={"message": "Files updated successfully"})
+            separated_strings = encoded_content.split(',')
+
+            for i, encoded_item in enumerate(separated_strings, start=max_existing_index + 1):
+                output_file_path = os.path.join(path, f'encodedtxt{i}.txt')
+
+                with open(output_file_path, 'w') as output_file:
+                    output_file.write(encoded_item)
+
+            return JSONResponse(content={"message": "Files updated successfully"})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.delete("/delete/")
 async def delete_files(key: str):
@@ -135,5 +146,3 @@ async def delete_files(key: str):
         raise HTTPException(status_code=404, detail="Folder not found")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error deleting folder: {str(e)}")
-
-    return {"message": f"Folder '{key}' and its contents deleted successfully"}
