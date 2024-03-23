@@ -21,15 +21,13 @@ app.add_middleware(
 
 connection=create_connection(db_file)
 
-def generate_random_string(length=8):
-    letters = string.ascii_lowercase
-    return ''.join(random.choice(letters) for _ in range(length))
+key_generator = KeyGenerator()
 
 @app.post("/upload/")
 async def upload(key: Optional[str] = Form(None), encoded_content: List[str] = Form(...)):
     try:
         if not key:
-            key = generate_random_string()
+            key = key_generator.generate_key()
         if not encoded_content:
             raise HTTPException(status_code=422, detail="Field 'encoded_content' cannot be empty")
         key_directory = f"{key}"
