@@ -36,11 +36,11 @@ async def upload(key: Optional[str] = Form(None), encoded_content: List[str] = F
         directory_key = f"./storage/{key_directory}"
         os.makedirs(directory_key , exist_ok=True)
         existing_files_count = len([name for name in os.listdir(directory_key) if name.startswith("encodedtxt")])
-        for i, encoded_item in enumerate(separated_strings, start=existing_files_count + 1):
+        for i, encoded_item in enumerate(encoded_content, start=existing_files_count + 1):
                 output_file_path = os.path.join(directory_key, f'encodedtxt{i}.txt')
 
                 with open(output_file_path, 'wb') as output_file:
-                    output_file.write(encoded_items.encode())
+                    output_file.write(encoded_item.encode())
         create_image_metadata( key, key_directory)
         return JSONResponse(content={"message": "File uploaded successfully","key": key})
     except Exception as e:
