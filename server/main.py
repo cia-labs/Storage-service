@@ -35,7 +35,8 @@ async def upload(key: Optional[str] = Form(None), encoded_content: List[str] = F
         key_directory = f"{key}"
         directory_key = f"./storage/{key_directory}"
         os.makedirs(directory_key , exist_ok=True)
-        for i, encoded_items in enumerate(encoded_content, start=1):
+        existing_files_count = len([name for name in os.listdir(directory_key) if name.startswith("encodedtxt")])
+        for i, encoded_item in enumerate(separated_strings, start=existing_files_count + 1):
                 output_file_path = os.path.join(directory_key, f'encodedtxt{i}.txt')
 
                 with open(output_file_path, 'wb') as output_file:
