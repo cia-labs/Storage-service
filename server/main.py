@@ -129,7 +129,9 @@ async def update_files(key: str, encoded_content: str = Form(...), new_key: Opti
                 with open(output_file_path, 'w') as output_file:
                     output_file.write(encoded_item)
 
-            return JSONResponse(content={"message": "Files updated successfully"})
+            return JSONResponse(content={"message": "Files updated successfully"})\
+    except HTTPException as http_exc:
+        raise http_exc
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
