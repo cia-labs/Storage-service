@@ -72,8 +72,9 @@ async def retrieve_file(key: str, metadata_only: Optional[bool] = False):
                     binary_data_list.append(binary_data)
 
         return binary_data_list
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))  
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.put("/update/")
 async def update_files(key: str, encoded_content: List[str] = Form(...), new_key: Optional[str] = Form(None)):
