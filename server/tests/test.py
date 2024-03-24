@@ -68,8 +68,8 @@ def test_retrieve_file_key_not_found():
 
 
 def test_update_files_success():
-    key = "test_key"
-    new_key = "new_test_key"
+    key = "test_key1"
+    new_key = "new_test_key1"
     encoded_content = ["encoded_content_1", "encoded_content_2"]
 
     response = client.post("/upload/", data={"key": key, "encoded_content": encoded_content})
@@ -80,8 +80,8 @@ def test_update_files_success():
     assert response.json() == {"message": "Files updated successfully"}
 
 def test_update_files_no_key_found():
-    key = "non_existent_key"
-    new_key = "new_test_key"
+    key = "non_existent_key2"
+    new_key = "new_test_key2"
     encoded_content = ["encoded_content_1", "encoded_content_2"]
 
     response = client.put(f"/update/?key={key}&new_key={new_key}", data={"encoded_content": encoded_content})
@@ -89,7 +89,7 @@ def test_update_files_no_key_found():
     assert response.json() == {"detail": "Key not found"}
 
 def test_delete_files_success():
-    key = "test_key"
+    key = "test_key12"
     encoded_content = ["encoded_content_1", "encoded_content_2"]
 
     client.post("/upload/", data={"key": key, "encoded_content": encoded_content})
