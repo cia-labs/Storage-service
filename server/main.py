@@ -44,6 +44,8 @@ async def upload(key: Optional[str] = Form(None), encoded_content: List[str] = F
                     output_file.write(encoded_item.encode())
         create_image_metadata( key, key_directory)
         return JSONResponse(content={"message": "File uploaded successfully","key": key})
+    except HTTPException as http_exc:
+        raise http_exc
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -71,8 +73,10 @@ async def retrieve_file(key: str, metadata_only: Optional[bool] = False):
 
         return binary_data_list
 
+    except HTTPException as http_exc:
+        raise http_exc
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))   
+        raise HTTPException(status_code=500, detail=str(e))  
 
 @app.put("/update/")
 async def update_files(key: str, encoded_content: List[str] = Form(...), new_key: Optional[str] = Form(None)):
