@@ -4,7 +4,8 @@ import os
 import sys
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.dirname(os.path.join(current_dir, "..", "utils/key_generator.py")))
+parent_path = os.path.join(current_dir, '..')  # Go up two levels to reach /Ciaos/server/
+sys.path.append(parent_path)
 
 from utils.key_generator import KeyGenerator
 
