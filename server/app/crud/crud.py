@@ -87,7 +87,7 @@ def get_latest_generated_key():
         cursor = connection.cursor()
         cursor.execute("""
         SELECT key FROM store ORDER BY id DESC LIMIT 1;
-        """, (key,))
+        """)
         result = cursor.fetchone()
         if result:
             return result[0]
