@@ -11,17 +11,10 @@ def create_table(db_file):
     connection = create_connection(db_file)
     cursor = connection.cursor()
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS generated_keys (
-        key TEXT NOT NULL UNIQUE,
-        generated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )
-    """)
-    cursor.execute("""
     CREATE TABLE IF NOT EXISTS store (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        generated_key TEXT NOT NULL,
-        key_directory TEXT NOT NULL,
-        FOREIGN KEY (generated_key) REFERENCES generated_keys (key)
+        key TEXT NOT NULL,
+        key_directory TEXT NOT NULL
     )
     """)
     connection.commit()
@@ -35,7 +28,7 @@ def create_image_metadata( key, key_directory):
     cursor = connection.cursor()
 
     cursor.execute("""
-    SELECT EXISTS (SELECT 1 FROM store WHERE generated_key = ? LIMIT 1)
+    SELECT EXISTS (SELECT 1 FROM store WHERE key = ? LIMIT 1)
     """, (key,))
     key_exists = cursor.fetchone()[0]
 
@@ -44,7 +37,7 @@ def create_image_metadata( key, key_directory):
         return {"status": "success", "message":"File uploaded successfully"}
 
     cursor.execute("""
-    INSERT INTO store (generated_key, key_directory) VALUES (?, ?)
+    INSERT INTO store (key, key_directory) VALUES (?, ?)
     """, (key, key_directory))
     connection.commit()
     connection.close()
@@ -55,7 +48,7 @@ def get_metadata(key):
         connection = create_connection(db_file)
         cursor = connection.cursor()
         cursor.execute("""
-        SELECT key_directory FROM store WHERE generated_key = ?
+        SELECT key_directory FROM store WHERE key = ?
         """, (key,))
         result = cursor.fetchone()
         if result:
@@ -71,7 +64,7 @@ def delete_metadata(key):
     connection= create_connection(db_file)
     cursor= connection.cursor()
     cursor.execute("""
-    Delete from store where generated_key=? 
+    Delete from store where key=? 
                    """,(key,))
     connection.commit()
     cursor.close()
@@ -79,7 +72,7 @@ def delete_metadata(key):
 def check_key_existence(key):
         connection = create_connection(db_file)
         cursor = connection.cursor()
-        cursor.execute("SELECT id FROM store WHERE generated_key=?", (key,))
+        cursor.execute("SELECT id FROM store WHERE key=?", (key,))
         result = cursor.fetchone()
         connection.close()
         if result is None:
@@ -93,7 +86,7 @@ def get_latest_generated_key():
         connection = create_connection(db_file)
         cursor = connection.cursor()
         cursor.execute("""
-        SELECT key FROM generated_keys ORDER BY generated_at DESC LIMIT 1;
+        SELECT key FROM store ORDER BY id DESC LIMIT 1;
         """, (key,))
         result = cursor.fetchone()
         if result:
@@ -104,12 +97,3 @@ def get_latest_generated_key():
         raise HTTPException(status_code=500, detail=f"Error fetching latest key: {str(e)}")
     finally:
         connection.close()
-
-
-def insert_generated_key(key):
-    connection = create_connection(db_file)
-    cursor = connection.cursor()
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    cursor.execute("INSERT INTO generated_keys (key, generated_at) VALUES (?, ?)", (key, timestamp))
-    connection.commit()
-    connection.close()
