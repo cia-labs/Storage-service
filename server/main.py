@@ -72,9 +72,6 @@ async def retrieve_file(key: str, metadata_only: Optional[bool] = False):
                     binary_data_list.append(binary_data)
 
         return binary_data_list
-
-    except HTTPException as http_exc:
-        raise http_exc
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))  
 
