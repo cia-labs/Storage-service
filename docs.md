@@ -33,7 +33,7 @@ Once the app is successfully installed, access http://127.0.0.1:8000/docs, You'l
 ---
 ---
 
-# Deploying the Storage Service as a Container
+# Deploying the Storage Service as a Docker Container
 
 To deploy the storage service as a container, follow these steps:
 
@@ -47,12 +47,8 @@ FROM alpine:latest
 # Set the working directory inside the container
 WORKDIR /code
 
-# Copy the requirements file to the working directory
-COPY ./requirements.txt .
-
-# Copy the application files to the working directory
-COPY ./crud.py /code/
-COPY ./main.py /code/
+# Copy all files from directory to /code
+COPY . /code
 
 # Install Python and pip in the Alpine image
 RUN apk --no-cache add python3 py3-pip

@@ -32,11 +32,12 @@ async def upload(key: Optional[str] = Form(None), encoded_content: List[str] = F
             key = generate_random_string()
         if not encoded_content:
             raise HTTPException(status_code=422, detail="Field 'encoded_content' cannot be empty")
+        if check_key_existence(key):
+            raise HTTPException(status_code=404, detail="Key already exist")
         key_directory = f"{key}"
         directory_key = f"./storage/{key_directory}"
         os.makedirs(directory_key , exist_ok=True)
-        existing_files_count = len([name for name in os.listdir(directory_key) if name.startswith("encodedtxt")])
-        for i, encoded_item in enumerate(encoded_content, start=existing_files_count + 1):
+        for i, encoded_item in enumerate(encoded_content, start= 1):
                 output_file_path = os.path.join(directory_key, f'encodedtxt{i}.txt')
 
                 with open(output_file_path, 'wb') as output_file:
