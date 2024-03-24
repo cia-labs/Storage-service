@@ -2,7 +2,7 @@ import shutil
 from fastapi import FastAPI, HTTPException, Form
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from typing import Optional
+from typing import Optional, List
 from app.crud.crud import check_key_existence,create_connection,create_image_metadata, get_metadata, delete_metadata,db_file
 import os
 import string
@@ -26,27 +26,26 @@ def generate_random_string(length=8):
     return ''.join(random.choice(letters) for _ in range(length))
 
 @app.post("/upload/")
-async def upload(key: Optional[str] = Form(None), encoded_content: str = Form(...)):
+async def upload(key: Optional[str] = Form(None), encoded_content: List[str] = Form(...)):
     try:
         if not key:
             key = generate_random_string()
         if not encoded_content:
             raise HTTPException(status_code=422, detail="Field 'encoded_content' cannot be empty")
+        if check_key_existence(key):
+            raise HTTPException(status_code=404, detail="Key already exist")
         key_directory = f"{key}"
         directory_key = f"./storage/{key_directory}"
-        os.makedirs(directory_key, exist_ok=True)
-        
-        separated_strings = encoded_content.split(',')
-        existing_files_count = len([name for name in os.listdir(directory_key) if name.startswith("encodedtxt")])
-        
-        for i, encoded_item in enumerate(separated_strings, start=existing_files_count + 1):
-            output_file_path = os.path.join(directory_key, f'encodedtxt{i}.txt')
+        os.makedirs(directory_key , exist_ok=True)
+        for i, encoded_item in enumerate(encoded_content, start= 1):
+                output_file_path = os.path.join(directory_key, f'encodedtxt{i}.txt')
 
-            with open(output_file_path, 'w') as output_file:
-                output_file.write(f"{encoded_item}")
-                
-        create_image_metadata(key, key_directory)
-        return JSONResponse(content={"message": "Files uploaded successfully", "key": key})
+                with open(output_file_path, 'wb') as output_file:
+                    output_file.write(encoded_item.encode())
+        create_image_metadata( key, key_directory)
+        return JSONResponse(content={"message": "File uploaded successfully","key": key})
+    except HTTPException as http_exc:
+        raise http_exc
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -75,8 +74,7 @@ async def retrieve_file(key: str, metadata_only: Optional[bool] = False):
         return binary_data_list
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))   
-    
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.put("/update/")
 async def update_files(key: str, encoded_content: str = Form(...), new_key: Optional[str] = Form(None)):
@@ -132,6 +130,10 @@ async def update_files(key: str, encoded_content: str = Form(...), new_key: Opti
                     output_file.write(encoded_item)
 
             return JSONResponse(content={"message": "Files updated successfully"})
+        
+    except HTTPException as http_exc:
+        raise http_exc
+    
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -146,5 +148,5 @@ async def delete_files(key: str):
         raise HTTPException(status_code=404, detail="Folder not found")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error deleting folder: {str(e)}")
-    
+
     return {"message": f"Folder '{key}' and its contents deleted successfully"}
