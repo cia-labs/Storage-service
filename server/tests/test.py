@@ -30,10 +30,17 @@ def test_upload_success():
     )
     print(response.json())
     assert response.status_code == 422
-    #add this if test case no psas
-    #"input": None,
-    #"url": f"https://errors.pydantic.dev/{pydantic_version}/v/missing"
-    assert response.json() == {'detail': [{'loc': ['body', 'encoded_content'], 'msg': 'field required', 'type': 'value_error.missing'}]}
+    assert response.json() == {
+        "detail": [
+            {
+                "type": "missing",
+                "loc": ["body", "encoded_content"],
+                "msg": "Field required",
+                "input": None,
+                "url": f"https://errors.pydantic.dev/{pydantic_version}/v/missing"
+            }
+        ]
+    }
 
     key = generated_key
 
