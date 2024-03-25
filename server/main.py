@@ -77,63 +77,56 @@ async def retrieve_file(key: str, metadata_only: Optional[bool] = False):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.put("/update/")
-async def update_files(key: str, encoded_content: str = Form(...), new_key: Optional[str] = Form(None)):
-    try:
-        filepath = get_metadata(key)
+async def update_files(key: str, encoded_content: List[str] = Form(...), new_key: Optional[str] = Form(None)):
+    filepath = get_metadata(key)
 
-        if filepath is None:
-            raise HTTPException(status_code=404, detail="Key not found")
+    if filepath is None:
+        raise HTTPException(status_code=404, detail="Key not found")
 
-        path = f"./storage/{filepath}"
+    path = f"./storage/{filepath}"
 
-        if new_key and new_key != key:
-            new_key_directory = f"./storage/{new_key}"
-            os.makedirs(new_key_directory, exist_ok=True)
-            create_image_metadata(new_key, new_key_directory)
-            path = f"./storage/{get_metadata(key)}"
-            new_path = new_key_directory
+    if new_key and new_key != key:
+ 
+        new_key_directory = f"./storage/{new_key}"
+        os.makedirs(new_key_directory, exist_ok=True)
+        create_image_metadata(new_key, new_key_directory)
+        path="./storage/"+get_metadata(key)
+        #TO-DO : Add the prefix or suffix to the folder name 
+        new_path = new_key_directory
 
-            for filename in os.listdir(path):
-                source_file_path = os.path.join(path, filename)
-                destination_file_path = os.path.join(new_path, filename)
-                shutil.copy2(source_file_path, destination_file_path)
+        for filename in os.listdir(path):
+            source_file_path = os.path.join(path, filename)
+            destination_file_path = os.path.join(new_path, filename)
+            shutil.copy2(source_file_path, destination_file_path)
 
-            existing_files = [f for f in os.listdir(new_path) if f.startswith("encodedtxt")]
-            if existing_files:
-                max_existing_index = max(int(f.split("encodedtxt")[1].split(".")[0]) for f in existing_files)
-            else:
-                max_existing_index = 0
+        existing_files = [f for f in os.listdir(new_path) if f.startswith("encodedtxt")]
+        if existing_files:
+            max_existing_index = max(int(f.split("encodedtxt")[1].split(".")[0]) for f in existing_files)
+        else:
+            max_existing_index = 0
 
-            separated_strings = encoded_content.split(',')
+        for i, encoded_items in enumerate(encoded_content, start=max_existing_index+1):
+            output_file_path = os.path.join(new_path, f'encodedtxt{i}.txt')
 
-            for i, encoded_item in enumerate(separated_strings, start=max_existing_index + 1):
-                output_file_path = os.path.join(new_path, f'encodedtxt{i}.txt')
+            with open(output_file_path, 'wb') as output_file:
+                output_file.write(encoded_items.encode())
+        
+        return JSONResponse(content={"message": "Files updated successfully"})
 
-                with open(output_file_path, 'w') as output_file:
-                    output_file.write(encoded_item)
+    if path or os.path.exists(path):
+        existing_files = [f for f in os.listdir(path) if f.startswith("encodedtxt")]
+        if existing_files:
+            max_existing_index = max(int(f.split("encodedtxt")[1].split(".")[0]) for f in existing_files)
+        else:
+            max_existing_index = 0
 
-            return JSONResponse(content={"message": "Files updated successfully"})
+        for i, encoded_items in enumerate(encoded_content, start=max_existing_index+1):
+            output_file_path = os.path.join(path, f'encodedtxt{i}.txt')
 
-        if path or os.path.exists(path):
-            existing_files = [f for f in os.listdir(path) if f.startswith("encodedtxt")]
-            if existing_files:
-                max_existing_index = max(int(f.split("encodedtxt")[1].split(".")[0]) for f in existing_files)
-            else:
-                max_existing_index = 0
+            with open(output_file_path, 'wb') as output_file:
+                output_file.write(encoded_items.encode())
 
-            separated_strings = encoded_content.split(',')
-
-            for i, encoded_item in enumerate(separated_strings, start=max_existing_index + 1):
-                output_file_path = os.path.join(path, f'encodedtxt{i}.txt')
-
-                with open(output_file_path, 'w') as output_file:
-                    output_file.write(encoded_item)
-
-            return JSONResponse(content={"message": "Files updated successfully"})
-    except HTTPException as http_exc:
-        raise http_exc
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        return JSONResponse(content={"message": "Files updated successfully"})
 
 @app.delete("/delete/")
 async def delete_files(key: str):
