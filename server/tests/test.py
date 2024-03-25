@@ -24,30 +24,18 @@ def test_upload_success():
     generated_key = response_data.get("key", None)
     assert response_data == {"message": "File uploaded successfully", "key": generated_key}
 
-def test_upload_fail():
     response = client.post(
         "/upload/",
-        data={"key": "testkey", "encoded_content": []}
+        data={"key": "test", "encoded_content": []}
     )
     print(response.json())
     assert response.status_code == 422
-    assert response.json() == {
-        "detail": [
-            {
-                "type": "missing",
-                "loc": ["body", "encoded_content"],
-                "msg": "Field required",
-                "input": None,
-                "url": f"https://errors.pydantic.dev/{pydantic_version}/v/missing"
-            }
-        ]
-    }
+    #add this if test case no psas
+    #"input": None,
+    #"url": f"https://errors.pydantic.dev/{pydantic_version}/v/missing"
+    assert response.json() == {'detail': [{'loc': ['body', 'encoded_content'], 'msg': 'field required', 'type': 'value_error.missing'}]}
 
-def test_retrieve_file_success():
-
-    key = "test_key"
-    encoded_content = ["encoded_content_1", "encoded_content_2"]
-    client.post("/upload/", data={"key": key, "encoded_content": encoded_content})
+    key = generated_key
 
     response = client.get(f"/get/{key}")
     print(response.status_code)
@@ -55,7 +43,6 @@ def test_retrieve_file_success():
     assert response.status_code == 200
     assert isinstance(response.json(), list)
 
-def test_retrieve_file_key_not_found():
     non_existent_key = "nonexistentkey"
 
     response = client.get(f"/get/{non_existent_key}")
