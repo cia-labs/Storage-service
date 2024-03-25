@@ -46,7 +46,7 @@ async def upload(key: Optional[str] = Form(None), encoded_content: str = Form(..
                 output_file.write(f"{encoded_item}")
                 
         create_image_metadata(key, key_directory)
-        return JSONResponse(content={"message": "Files uploaded successfully", "key": key})
+        return JSONResponse(content={"message": "File uploaded successfully", "key": key})
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -92,8 +92,8 @@ async def update_files(key: str, encoded_content: str = Form(...), new_key: Opti
             new_key_directory = f"./storage/{new_key}"
             os.makedirs(new_key_directory, exist_ok=True)
             create_image_metadata(new_key, new_key_directory)
-            path = f"./storage/{get_metadata(key)}"
-            new_path = new_key_directory
+            new_filepath = get_metadata(new_key)
+            new_path = f"./storage/{new_filepath}" if new_filepath else new_key_directory
 
             for filename in os.listdir(path):
                 source_file_path = os.path.join(path, filename)
@@ -132,8 +132,10 @@ async def update_files(key: str, encoded_content: str = Form(...), new_key: Opti
                     output_file.write(encoded_item)
 
             return JSONResponse(content={"message": "Files updated successfully"})
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="File not found")
+
 
 @app.delete("/delete/")
 async def delete_files(key: str):
