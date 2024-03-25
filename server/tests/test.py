@@ -24,7 +24,6 @@ def test_upload_retrieve():
     response_data = response.json()
     generated_key = response_data.get("key", None)
     assert response_data == {"message": "File uploaded successfully", "key": generated_key}
-    test_key = generated_key
 
     #test for failue of upload
     response = client.post(
@@ -64,7 +63,7 @@ def test_upload_retrieve():
     assert response.status_code == 500
     assert response.json() == {'detail': '404: Key not found'}
 #test for update sucess
-    key = "test_key"
+    key = generated_key
     new_key = "new_test_key"
     encoded_content = ["encoded_content_3", "encoded_content_4"]
 
@@ -80,7 +79,7 @@ def test_upload_retrieve():
     assert response.status_code == 404
     assert response.json() == {"detail": "Key not found"}
 #test for delete sucess
-    key = "test_key"
+    key = generated_key
 
     response = client.delete(f"/delete/?key={key}")
     assert response.status_code == 200
