@@ -24,6 +24,7 @@ def test_upload_retrieve():
     response_data = response.json()
     generated_key = response_data.get("key", None)
     assert response_data == {"message": "File uploaded successfully", "key": generated_key}
+    test_key = generated_key
 
     #test for failue of upload
     response = client.post(
