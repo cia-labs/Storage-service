@@ -32,16 +32,20 @@ async def upload(key: Optional[str] = Form(None), encoded_content: List[str] = F
             key = generate_random_string()
         if not encoded_content:
             raise HTTPException(status_code=422, detail="Field 'encoded_content' cannot be empty")
+        if check_key_existence(key):
+            raise HTTPException(status_code=404, detail="Key already exist")
         key_directory = f"{key}"
         directory_key = f"./storage/{key_directory}"
         os.makedirs(directory_key , exist_ok=True)
-        for i, encoded_items in enumerate(encoded_content, start=1):
+        for i, encoded_item in enumerate(encoded_content, start= 1):
                 output_file_path = os.path.join(directory_key, f'encodedtxt{i}.txt')
 
                 with open(output_file_path, 'wb') as output_file:
-                    output_file.write(encoded_items.encode())
+                    output_file.write(encoded_item.encode())
         create_image_metadata( key, key_directory)
         return JSONResponse(content={"message": "File uploaded successfully","key": key})
+    except HTTPException as http_exc:
+        raise http_exc
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -70,7 +74,7 @@ async def retrieve_file(key: str, metadata_only: Optional[bool] = False):
         return binary_data_list
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))   
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.put("/update/")
 async def update_files(key: str, encoded_content: List[str] = Form(...), new_key: Optional[str] = Form(None)):
