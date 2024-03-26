@@ -79,3 +79,19 @@ def check_key_existence(key):
             return False
         else:
             return True
+
+
+def get_latest_generated_key():
+    try:
+        connection = create_connection(db_file)
+        cursor = connection.cursor()
+        cursor.execute("SELECT key FROM store ORDER BY id DESC LIMIT 1")
+        result = cursor.fetchone()
+        if result:
+            return result[0]
+        else:
+            return 0
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching latest key: {str(e)}")
+    finally:
+        connection.close()
