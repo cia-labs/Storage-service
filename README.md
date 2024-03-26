@@ -1,11 +1,11 @@
 # CIAOS - CIA's Object Store
 
 ## System Offerings that are currently being built. 
-1. Fault Tolerance - Uses Erasure Coding to Optimise Data replication - Currently being built by [@Tejus_CJ](https://github.com/Tejas-ChandraShekarRaju).
-2. User Access Management - Seeks contribution for design. 
-3. Search - Seeks contribution for design.
-4. Availability - Seeks contribution for design.
-5. Client Library and Http Services - Client package is currently available for Python only. Both Client and API end points are built by [@Siddiq](https://github.com/noobed-max) and [@Ashish](https://github.com/Ashish9738).
+1. Fault Tolerance - Uses Erasure Coding to Optimise Data replication - [Discussion]()
+2. User Access Management - Seeks contribution for design. [Discussion](https://github.com/cia-labs/Storage-service/issues/36)
+3. Search - Seeks contribution for design. -   [Discussion](https://github.com/cia-labs/Storage-service/issues/35)
+4. Availability - Seeks contribution for design. [Discussion]()
+5. Client Library and Http Services - Client package is currently available for Python only. Both Client and API end points. - [Discussion]()
 
 HLD - High Level Design
 https://drive.google.com/file/d/1BWJzX_X4IUtnwxcTL0QxThmeq6kVCHHz/view?usp=drive_link
