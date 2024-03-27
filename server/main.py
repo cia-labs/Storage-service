@@ -10,6 +10,8 @@ import string
 import random
 from fastapi import HTTPException
 
+STORAGE_DIRECTORY = os.getenv("STORAGE_DIRECTORY")
+
 app = FastAPI()
 
 app.add_middleware(
@@ -32,7 +34,7 @@ async def upload(key: Optional[str] = Form(None), encoded_content: List[str] = F
         if not encoded_content:
             raise HTTPException(status_code=422, detail="Field 'encoded_content' cannot be empty")
         key_directory = f"{key}"
-        directory_key = f"./storage/{key_directory}"
+        directory_key = f"{STORAGE_DIRECTORY}/{key_directory}"
         os.makedirs(directory_key , exist_ok=True)
         for i, encoded_items in enumerate(encoded_content, start=1):
                 output_file_path = os.path.join(directory_key, f'encodedtxt{i}.txt')
@@ -51,7 +53,7 @@ async def retrieve_file(key: str, metadata_only: Optional[bool] = False):
             raise HTTPException(status_code=404, detail="Key not found")
 
         filepath = get_metadata(key)
-        path = f"./storage/{filepath}"
+        path = f"{STORAGE_DIRECTORY}/{filepath}"
 
         if not path or not os.path.exists(path):
            raise HTTPException(status_code=404, detail="Key not found")
@@ -78,14 +80,14 @@ async def update_files(key: str, encoded_content: List[str] = Form(...), new_key
     if filepath is None:
         raise HTTPException(status_code=404, detail="Key not found")
 
-    path = f"./storage/{filepath}"
+    path = f"{STORAGE_DIRECTORY}/{filepath}"
 
     if new_key and new_key != key:
  
-        new_key_directory = f"./storage/{new_key}"
+        new_key_directory = f"{STORAGE_DIRECTORY}/{new_key}"
         os.makedirs(new_key_directory, exist_ok=True)
         create_image_metadata(new_key, new_key_directory)
-        path="./storage/"+get_metadata(key)
+        path=f"{STORAGE_DIRECTORY}/"+get_metadata(key)
         #TO-DO : Add the prefix or suffix to the folder name 
         new_path = new_key_directory
 
@@ -125,7 +127,7 @@ async def update_files(key: str, encoded_content: List[str] = Form(...), new_key
 
 @app.delete("/delete/")
 async def delete_files(key: str):
-    folder_path = f"./storage/{key}"
+    folder_path = f"{STORAGE_DIRECTORY}/{key}"
 
     try:
         shutil.rmtree(folder_path)
