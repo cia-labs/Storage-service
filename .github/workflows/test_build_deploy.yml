@@ -61,7 +61,7 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Build and Push Docker Image
+    - name: Build and Push Docker Image to ghcr
       uses: docker/build-push-action@v5
       with:
         context: .
