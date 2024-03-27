@@ -10,7 +10,10 @@ import string
 import random
 from fastapi import HTTPException
 
-STORAGE_DIRECTORY = os.getenv("STORAGE_DIRECTORY")
+STORAGE_DIRECTORY = "./storage"
+
+if os.getenv("STORAGE_DIRECTORY"):
+    STORAGE_DIRECTORY = os.getenv("STORAGE_DIRECTORY")
 
 app = FastAPI()
 
