@@ -4,6 +4,12 @@ FROM python:3.10-slim
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
+# app vars
+ENV STORAGE_DIRECTORY /data
+ENV DB_FILE /data/data.db
+
+RUN mkdir /data
+
 # Set work directory
 WORKDIR /server
 
