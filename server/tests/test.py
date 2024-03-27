@@ -78,7 +78,7 @@ def test_update_files_success():
     response = client.put(f"/update/?key={key}&new_key={new_key}", data={"encoded_content": encoded_content})
     assert response.status_code == 200
     assert response.json() == {"message": "Files updated successfully"}
-
+    
 def test_update_files_no_key_found():
     key = "non_existent_key"
     new_key = "new_test_key"
