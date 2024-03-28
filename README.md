@@ -1,5 +1,8 @@
 # CIAOS - CIA's Object Store
 
+## About
+CIAOS is a general purpose KV/Object store optimised for machine learning practices. 
+
 ## System Offerings that are currently being built. 
 1. Fault Tolerance - Uses Erasure Coding to Optimise Data replication - [Discussion]()
 2. User Access Management - Seeks contribution for design. [Discussion](https://github.com/cia-labs/Storage-service/issues/36)
@@ -7,8 +10,6 @@
 4. Availability - Seeks contribution for design. [Discussion]()
 5. Client Library and Http Services - Client package is currently available for Python only. Both Client and API end points. - [Discussion]()
 
-HLD - High Level Design
-https://drive.google.com/file/d/1BWJzX_X4IUtnwxcTL0QxThmeq6kVCHHz/view?usp=drive_link
 
 ## Getting Started
 
