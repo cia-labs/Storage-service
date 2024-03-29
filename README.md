@@ -4,11 +4,12 @@
 CIAOS is a general purpose KV/Object store optimised for machine learning practices. 
 
 ## System Offerings that are currently being built. 
-1. Fault Tolerance - Uses Erasure Coding to Optimise Data replication - [Discussion]()
-2. User Access Management - Seeks contribution for design. [Discussion](https://github.com/cia-labs/Storage-service/issues/36)
-3. Search - Seeks contribution for design. -   [Discussion](https://github.com/cia-labs/Storage-service/issues/35)
-4. Availability - Seeks contribution for design. [Discussion]()
-5. Client Library and Http Services - Client package is currently available for Python only. Both Client and API end points. - [Discussion]()
+1. Storage - Key/Value, Files and Blobs. 
+2. Fault Tolerance - Uses Erasure Coding to Optimise Data replication - [Discussion]()
+3. User Access Management - Seeks contribution for design. [Discussion](https://github.com/cia-labs/Storage-service/issues/36)
+4. Search - Seeks contribution for design. -   [Discussion](https://github.com/cia-labs/Storage-service/issues/35)
+5. Availability - Seeks contribution for design. [Discussion]()
+6. Client Library and Http Services - Client package is currently available for Python only. Both Client and API end points. - [Discussion]()
 
 
 ## Getting Started
