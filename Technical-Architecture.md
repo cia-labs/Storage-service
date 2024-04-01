@@ -12,4 +12,5 @@ DELETE /delete/: Delete files from the server
 
 ### References 
 
-http://www.lmdb.tech/doc/?ref=blog.meilisearch.com
+http://www.lmdb.tech/doc/?ref=blog.meilisearch.com [1]
+https://blog.meilisearch.com/how-full-text-search-engines-work/ [2]
