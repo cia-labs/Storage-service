@@ -67,56 +67,14 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000","--reload"]
 
 ```
-## **Build the Docker Image:**
+ **Now Build the Docker Image and deploy the container**
 
-In the terminal, navigate to the directory containing the Dockerfile and run the following command to build the Docker image. Replace your_image_name:tag with a name and tag for your image.
+you can access the Swagger UI over the container ip address at port 8000
 
-```bash
-docker build -t your_image_name:tag .
- ```
-
-## **Upload the Docker Image to Docker Hub:**
-
-If you haven't done so already, create an account on Docker Hub. After creating an account, log in to Docker Hub in the terminal using the following command:
-    
-```bash
-docker login
-```
-
-Tag the built image with your Docker Hub username and the desired repository name:
-```bash
-docker tag your_image_name:tag your_dockerhub_username/repository_name:tag
-```
-Push the image to Docker Hub:
-
-```bash
-docker push your_dockerhub_username/repository_name:tag
-```
-## **Pull and Deploy the Docker Image:**
-
-On the machine where you want to deploy the storage service, ensure that Docker is installed. Pull the Docker image from Docker Hub:
-
-```bash
-docker pull your_dockerhub_username/repository_name:tag
-```
-Run the container from the pulled image:
-```
-docker run -p host_port:container_port your_dockerhub_username/repository_name:tag
-```
-
-Replace host_port with the port on your host machine where you want to expose the service, and container_port with the port specified in the Dockerfile (in this case, 8000).
-
-Now, the storage service should be running inside the Docker container. Access it through the specified host port on your machine.
-
-Note: If you want to change the exposed port, modify the EXPOSE and CMD directives in the Dockerfile. Update the EXPOSE line with the desired port, and adjust the --port option in the CMD line accordingly.
+- Note: If you want to change the exposed port, modify the EXPOSE and CMD directives in the Dockerfile. Update the EXPOSE line with the desired port, and adjust the --port option in the CMD line accordingly.
 
 ```docker
-    # Change the exposed port to 8080
+# Change the exposed port to 8080
 EXPOSE 8080
-
-    # Change the CMD line to use port 8080
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080","--reload"]
-```
-
 
 
