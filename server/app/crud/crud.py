@@ -1,7 +1,11 @@
 import sqlite3
 from fastapi import HTTPException
+import os
 
 db_file = "../server/app/crud/db_name.db"
+
+if os.getenv("DB_FILE"):
+    db_file = os.getenv("DB_FILE")
 
 def create_connection(db_file):
     connection = sqlite3.connect(db_file)

@@ -1,0 +1,11 @@
+version: '3.8'
+services:
+  ciaos-app:
+    image: ghcr.io/cia-labs/ciaos:${BUILD_HASH}
+    ports:
+      - 11000:8000
+    volumes:
+      - ciaosdata:/data
+
+volumes:
+  ciaosdata:              
