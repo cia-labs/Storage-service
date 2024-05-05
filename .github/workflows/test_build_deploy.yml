@@ -71,4 +71,4 @@ jobs:
         
     - name: POST request to re-deploy on portainer webhook
       run: |
-        curl -X POST https://docker.cialabs.tech/api/stacks/webhooks/4e3fb43a-54dc-459a-be5a-36988796405e?BUILD_HASH=${{ github.sha }} -H "Content-Type: application/json" 
+        curl -X POST https://docker.cialabs.org/api/stacks/webhooks/4e3fb43a-54dc-459a-be5a-36988796405e?BUILD_HASH=${{ github.sha }} -H "Content-Type: application/json" 
