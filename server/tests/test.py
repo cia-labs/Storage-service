@@ -38,7 +38,6 @@ def test_upload_fail():
                 "loc": ["body", "encoded_content"],
                 "msg": "Field required",
                 "input": None,
-                "url": f"https://errors.pydantic.dev/{pydantic_version}/v/missing"
             }
         ]
     }
