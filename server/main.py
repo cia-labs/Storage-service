@@ -32,6 +32,8 @@ key_generator = KeyGenerator()
 @app.post("/upload/")
 async def upload(key: Optional[str] = Form(None), encoded_content: List[str] = Form(...)):
     try:
+        if check_key_existence(key):
+            raise HTTPException(status_code=404, detail="Key already exist")
         if not key:
             key = key_generator.generate_key()
         if not encoded_content:
@@ -78,11 +80,12 @@ async def retrieve_file(key: str, metadata_only: Optional[bool] = False):
 
 @app.put("/update/")
 async def update_files(key: str, encoded_content: List[str] = Form(...), new_key: Optional[str] = Form(None)):
+
+    if not check_key_existence(key):
+        await upload(key, encoded_content)
+        return JSONResponse(content={"message": "Files updated successfully"}) 
+
     filepath = get_metadata(key)
-
-    if filepath is None:
-        raise HTTPException(status_code=404, detail="Key not found")
-
     path = f"{STORAGE_DIRECTORY}/{filepath}"
 
     if new_key and new_key != key:
