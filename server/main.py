@@ -92,7 +92,7 @@ async def update_files(key: str, encoded_content: List[str] = Form(...), new_key
  
         new_key_directory = f"{STORAGE_DIRECTORY}/{new_key}"
         os.makedirs(new_key_directory, exist_ok=True)
-        create_image_metadata(new_key, new_key_directory)
+        create_image_metadata(new_key, new_key)
         path=f"{STORAGE_DIRECTORY}/"+get_metadata(key)
         #TO-DO : Add the prefix or suffix to the folder name 
         new_path = new_key_directory
