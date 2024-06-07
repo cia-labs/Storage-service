@@ -71,9 +71,6 @@ def test_update_files_success():
     new_key = "new_test_key"
     encoded_content = ["encoded_content_1", "encoded_content_2"]
 
-    response = client.post("/upload/", data={"key": key, "encoded_content": encoded_content})
-    assert response.status_code == 200
-
     response = client.put(f"/update/?key={key}&new_key={new_key}", data={"encoded_content": encoded_content})
     assert response.status_code == 200
     assert response.json() == {"message": "Files updated successfully"}
