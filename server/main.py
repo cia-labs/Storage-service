@@ -83,8 +83,8 @@ async def retrieve_file(key: str, metadata_only: Optional[bool] = False):
 async def update_files(key: str, encoded_content: List[str] = Form(...), new_key: Optional[str] = Form(None)):
 
     if not check_key_existence(key):
-        await upload(key, encoded_content)
-        return JSONResponse(content={"message": "Files updated successfully"}) 
+        return await upload(key, encoded_content)
+        #return JSONResponse(content={"message": "Files updated successfully"}) 
 
     filepath = get_metadata(key)
     path = f"{STORAGE_DIRECTORY}/{filepath}"
