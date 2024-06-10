@@ -59,7 +59,6 @@ async def retrieve_file(key: str, metadata_only: Optional[bool] = False):
 
         filepath = get_metadata(key)
         path = f"{STORAGE_DIRECTORY}/{filepath}"
-        print(path)
 
         if not path or not os.path.exists(path):
            raise HTTPException(status_code=404, detail="Key not found")
