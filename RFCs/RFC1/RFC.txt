@@ -1,0 +1,121 @@
+
+
+
+
+
+
+Request for Comments: 1                                  Mohammed Siddiq
+Category: Architecture                                          May 2024
+ISSN: 2070-1721
+
+
+                           Enhancing File storage
+                      Implementing Needle in Haystack
+
+Abstract: 
+
+   This document describes the how our current implementation of Object 
+   Storage Service lacks compared to haystack implementation. The 
+   documentation contains testing of current storage implementation as 
+   well as haystack. It also highlights missing applications in haystack 
+   which needs to be implemented, as well as other necessary modifications. 
+
+Description on CIAOS and haystack:
+
+   The current implementation which uses Base64 encoding of files to store
+   encoded data into text files. The current object storage service[CIAOS]
+   performs upload, get, update and delete functionalities. The upload 
+   operation excepts a key and a base64 encoded file from the client to be
+   uploaded and stores the base64 encoded content inside a text file in 
+   directory with key name as folder name so that when get operation is 
+   performed the retrieval of encoded content is from the directory with 
+   the key name.
+
+   The haystack implementation does not use any encoding of files, the files
+   are directly uploaded and the haystack implementation writes each file 
+   into a bin file and stores the offset[the starting address to the file]
+   and the size of the file. So that while retrieving the storage service 
+   uses the offset and size value to map the file, read and provide download
+   option to client 
+
+ 
+
+Testing: 
+
+   The test was run on Lenovo Legion Y740-I5RH  
+   System Specifications: i7-9750H [cores:6, hreads12, max: 4.50 GHz, 
+   base: 2.60 GHz], 16gb ram, GTX 1660 ti, 512gb SSD,1TB HHD. 
+
+   The dummy file used for testing purpose is “x64n.rpf” which is 1.6gb 
+   in size, the image testing.jpg in the repository shows the testing 
+   time taken to upload as well as download the given file on a haystack
+   storage model, which was approximately 19 seconds .The same test 
+   couldn’t be performed on Current Storage service as it crashed the 
+   system due to high CPU usage while base64 encoding of dummy file.
+
+   Another test was performed to measure the same time taken but over a 
+   30mb dummy file. The images CIAOS_testing.jpg and haystack_testing.jpg 
+   show the time taken to download and upload the dummy file over current
+   storage service implementation and Haystack implementation respectfully.
+   Here we can clearly see that the haystack takes at most 0.35 seconds 
+   while the CIAOS implementation takes atleast 5 seconds to perform the 
+   same operation.
+   
+   The key differences between Haystack implementation and CIAOS is that 
+   the haystack clearly outperforms CIAOS in terms of speed, system resource
+   usage as well as the metadata. The above testing shows that haystack 
+   clearly outperforms CIAOS in terms of speed, the CIAOS implementation used
+   high system resources as it had to store really long base64 encoded data 
+   in a number of text files and also open each text file and read the base64
+   content to write it to a list and than provide the user with encoded data.
+   This clearly required more system resources to perform each operation as 
+   well as created unecessarily more metadata for the system to store.
+   Therefore wastage of disk space which can intern be carefully utilised by 
+   haystack.
+
+
+ 
+
+Alternative to Current implementation of Storing Metadata in haystack:
+
+   To store keys,offset and size of upload it would be more efficient to 
+   switch to SQLite DB than to use a json, where in case of million of 
+   keys,offset and other pair values , it would be inefficient to store 
+   them in json and open it than read its content to a dictionary and 
+   than search for the key. The methodology in which keys, offset and 
+   size of files can be stored in DB is that, 
+| key0 | json[offset_1,size_1,offset_2,size_2,..........,offset_N,size_N]| 
+| key1 | json[offset_1,size_1,offset_2,size_2,..........,offset_N,size_N]| 
+| key2 | json[offset_1,size_1,offset_2,size_2,..........,offset_N,size_N]| 
+
+ 
+
+Handling Update endpoint: 
+
+   Just like the current implementation a key to existing object in 
+   haystack is provided with the content that needs to be appended/
+   updated , the haystack connects to the table with the key name and
+   at the end of table appends the new values of uploaded content. 
+
+ 
+
+System Logs and Application logs(Debug logs):
+
+   The storage service generates application logs which are a record of 
+   all events performed using the service like upload, get, update and
+   delete. It monitors all possible failures and successfull operations.
+   When the service fails or throws error , developers can look into logs
+   for info on error.
+
+   The System logs are used by a separate service entity that has the sole 
+   purpose of maintaining the haystack bin file for keeping storage usage 
+   in check.The system logs which are basically the logs on every delete 
+   operation performed, i.e it stores the offsets and size of deleted 
+   content. When the Storage service is ideal a separate service kicks in to 
+   go through these system logs and free up the bin from garbage files.
+
+Language Migration to RUST:
+
+   switching from using python to RUST language 
+
+ 
