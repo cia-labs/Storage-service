@@ -1,6 +1,6 @@
 Request for Comments: 1                                        June 2024
 Category: Object Storage Architecture                                   
-Author: Mohammed Siddiq advised by Tejus C
+Author: Mohammed Siddiq                                Advisor : Tejus C
 
 
                            Enhancing File Storage
