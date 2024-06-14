@@ -1,8 +1,11 @@
-Request for Comments: 1                                  Mohammed Siddiq
-Category: Object Storage Architecture                          June 2024
+Request for Comments: 1                                        June 2024
+Category: Object Storage Architecture                                   
+Author: Mohammed Siddiq advised by Tejus C
+
 
                            Enhancing File Storage
                       Implementing Needle in Haystack
+
 
 Abstract:
 
@@ -82,6 +85,39 @@ System Logs and Application Logs (Debug Logs):
    content. When the storage service is idle, a separate service kicks in to 
    go through these system logs and free up the bin from garbage files.
 
+Using XFC FileSystem:
+
+   The machine shoudl use file system that does not need much memory to be 
+   able to perform random seeks within a large file quickly. the two main 
+   advantages of XFC over other file systems is that the blockmaps for 
+   several contiguous large files can be small enough to be stored in main 
+   memory. Secondly,XFC has a feature that allows it to reserve space for a
+   file all at once when the file is created. This is called file 
+   preallocation. By doing this, it reduces fragmentation, which is when a 
+   file is broken up and stored in different places on the disk. Keeping the 
+   file in one place makes it faster to read and write to the file and keeps 
+   the blockmaps from becoming too large and complex.
+
+Using a single Bin file to store all images:
+
+   Storing multiple images in a single bin file reduces the amount of filesystem
+   metadata required per file i.e instead of having metadata for each individual
+   file, there is metadata for one large file that containes many images. And 
+   also results in efficient disk operataions as multiple files are consolidated 
+   into a single file.
+
+   The offset is the position within the bin file where a specific file starts
+   and The size indicates how much space the file occupies within the bin file. 
+   The usage of Offset and size values of file reduces the time required to seek
+   each file. This reduces the number of disk operations. By using a single bin 
+   file and relying on offsets and sizes, the system can handle a large volume of 
+   photo storage and retrieval requests efficiently, keeping the performance high 
+   and the cost low​.
+
+
 Language Migration to RUST:
 
    Switching from using Python to RUST language.
+
+Reference:
+   https://www.usenix.org/legacy/event/osdi10/tech/full_papers/Beaver.pdf
