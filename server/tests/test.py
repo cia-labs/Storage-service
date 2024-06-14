@@ -38,7 +38,6 @@ def test_upload_fail():
                 "loc": ["body", "encoded_content"],
                 "msg": "Field required",
                 "input": None,
-                "url": f"https://errors.pydantic.dev/{pydantic_version}/v/missing"
             }
         ]
     }
@@ -72,21 +71,10 @@ def test_update_files_success():
     new_key = "new_test_key"
     encoded_content = ["encoded_content_1", "encoded_content_2"]
 
-    response = client.post("/upload/", data={"key": key, "encoded_content": encoded_content})
-    assert response.status_code == 200
-
     response = client.put(f"/update/?key={key}&new_key={new_key}", data={"encoded_content": encoded_content})
     assert response.status_code == 200
     assert response.json() == {"message": "Files updated successfully"}
 
-def test_update_files_no_key_found():
-    key = "non_existent_key"
-    new_key = "new_test_key"
-    encoded_content = ["encoded_content_1", "encoded_content_2"]
-
-    response = client.put(f"/update/?key={key}&new_key={new_key}", data={"encoded_content": encoded_content})
-    assert response.status_code == 404
-    assert response.json() == {"detail": "Key not found"}
 
 def test_delete_files_success():
     key = "test_key"

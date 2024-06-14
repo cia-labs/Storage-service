@@ -7,3 +7,4 @@
 5. https://www.cs.princeton.edu/~wlloyd/papers/f4-osdi14.pdf [5]
 6. https://www.vldb.org/pvldb/vol10/p1022-muehleisen.pdf [6] - A case for client side protocol redesign.
 7. https://dl.acm.org/doi/pdf/10.1145/78973.78977 - Skip Lists - William Pugh's paper [7]
+8. https://diamond.cs.cmu.edu/whatisdiamond.html [8] - Searching wihout an Index especially image data. 
