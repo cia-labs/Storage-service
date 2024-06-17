@@ -33,7 +33,7 @@ Description of CIAOS and Haystack:
    can be streamed to the same large file. We also keep track of the file
    offset and size of the file in an index file to retrieve the file. 
 
-   Testing:
+Testing:
 
    The test was run on a Lenovo Legion Y740-I5RH.
 
