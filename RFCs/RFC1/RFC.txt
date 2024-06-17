@@ -12,8 +12,7 @@ Abstract:
    This document describes how our current implementation of Object 
    Storage Service lacks compared to the Haystack implementation. The 
    documentation contains testing of the current storage implementation 
-   as well as Haystack. It also highlights missing applications in Haystack 
-   which need to be implemented, as well as other necessary modifications.
+   as well as Haystack.
 
 Description of CIAOS and Haystack:
 
@@ -26,12 +25,13 @@ Description of CIAOS and Haystack:
    operation is performed, the retrieval of encoded content is from the 
    directory with the key name.
 
-   The Haystack implementation does not use any encoding of files; the files 
-   are directly uploaded, and the Haystack implementation writes each file 
-   into a bin file and stores the offset (the starting address of the file) 
-   and the size of the file. So, while retrieving, the storage service 
-   uses the offset and size value to map the file, read it, and provide a 
-   download option to the client.
+   The Haystack implementation uses a XFS based file system to preallocate
+   file sizes, allowing storage of multiple objects within a single file.
+   This ensures that all objects reside on consecutive blocks on the disk
+   avoiding fragmentation if there are files/objects uploaded with larger 
+   size. This also reduces file metadata, since multiple files/objects 
+   can be streamed to the same large file. We also keep track of the file
+   offset and size of the file in an index file to retrieve the file. 
 
 Testing:
 
@@ -42,20 +42,21 @@ Testing:
    The dummy file used for testing purposes is “x64n.rpf” which is 1.6GB 
    in size. The image testing.jpg in the repository shows the testing 
    time taken to upload as well as download the given file on a Haystack 
-   storage model, which was approximately 19 seconds. The same test 
+   storage architecture, which was approximately 19 seconds. The same test 
    couldn’t be performed on the current storage service as it crashed the 
-   system due to high CPU usage while Base64 encoding the dummy file.
+   system due to high CPU usage.
 
    Another test was performed to measure the time taken but over a 
-   30MB dummy file. The images CIAOS_testing.jpg and haystack_testing.jpg 
-   show the time taken to download and upload the dummy file over the current 
+   30MB file. The images CIAOS_testing.jpg and haystack_testing.jpg 
+   show the time taken to download and upload the file over the current 
    storage service implementation and Haystack implementation respectively. 
    Here, we can clearly see that the Haystack takes at most 0.35 seconds 
    while the CIAOS implementation takes at least 5 seconds to perform the 
-   same operation.
+   same operation. There's a roughly 93% improvement in performance going
+   from 5 seconds to 0.35 seconds
 
    In summary, the Haystack implementation significantly outperforms CIAOS 
-   in terms of speed, system resource usage, and metadata efficiency. The 
+   in terms of speed, system resource usage, and storage efficiency. The 
    above testing demonstrates Haystack's superior performance, with CIAOS 
    using higher system resources due to the need to store and manage extensive 
    Base64 encoded data. This process involves opening multiple text files 
@@ -65,33 +66,35 @@ Testing:
 
 Handling the Update Endpoint:
 
-   Just like the current implementation, a key to an existing object in 
-   Haystack is provided with the content that needs to be appended/
-   updated. The Haystack connects to the table with the key name and 
-   appends the new values of uploaded content at the end of the table.
+   Updates to keys will be done via a seperate API called update unlike 
+   current implementation where update to a key and appending new files
+   can happen at the same time. To keep it simple we will make modifica-
+   tions to the current update to handle only key updates and will 
+   introduce a new API to handle appending more objects/files to the
+   same key.
+
+   
 
 System Logs and Application Logs (Debug Logs):
 
-   The storage service generates application logs which are a record of 
+   The storage service generates debug logs which are a record of 
    all events performed using the service, such as upload, get, update, and 
    delete. It monitors all possible failures and successful operations. 
    When the service fails or throws an error, developers can look into logs 
    for information on the error.
 
-   The system logs are used by a separate service entity that has the sole 
+   The system logs are used by a separate daemon that has the sole 
    purpose of maintaining the Haystack bin file for keeping storage usage 
-   in check. The system logs are basically the logs of every delete 
-   operation performed, i.e., they store the offsets and size of deleted 
-   content. When the storage service is idle, a separate service kicks in to 
-   go through these system logs and free up the bin from garbage files.
+   in check. The system logs are basically the logs of every for the storage
+   service to maintain atomicity and durability of the operations performed. 
 
-Using XFC FileSystem:
+Using XFS FileSystem:
 
-   The machine shoudl use file system that does not need much memory to be 
+   The machine should use file system that does not need much memory to be 
    able to perform random seeks within a large file quickly. the two main 
-   advantages of XFC over other file systems is that the blockmaps for 
+   advantages of XFS over other file systems is that the blockmaps for 
    several contiguous large files can be small enough to be stored in main 
-   memory. Secondly,XFC has a feature that allows it to reserve space for a
+   memory. Secondly,XFS has a feature that allows it to reserve space for a
    file all at once when the file is created. This is called file 
    preallocation. By doing this, it reduces fragmentation, which is when a 
    file is broken up and stored in different places on the disk. Keeping the 
@@ -117,7 +120,8 @@ Using a single Bin file to store all images:
 
 Language Migration to RUST:
 
-   Switching from using Python to RUST language.
+  To make use of system resoures efficiently we are moving to RUST as
+  the programming langauge. 
 
-Reference:
+References:
    https://www.usenix.org/legacy/event/osdi10/tech/full_papers/Beaver.pdf
