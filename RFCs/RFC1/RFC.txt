@@ -33,13 +33,19 @@ Description of CIAOS and Haystack:
    can be streamed to the same large file. We also keep track of the file
    offset and size of the file in an index file to retrieve the file. 
 
-Testing:
+   Testing:
 
    The test was run on a Lenovo Legion Y740-I5RH.
-   System Specifications: i7-9750H [cores: 6, threads: 12, max: 4.50 GHz, 
-   base: 2.60 GHz], 16GB RAM, GTX 1660 Ti, 512GB SSD, 1TB HDD.
 
-   The dummy file used for testing purposes is “x64n.rpf” which is 1.6GB 
+   System Specifications:
+
+   i7-9750H (cores: 6, threads: 12, max: 4.50 GHz, base: 2.60 GHz)
+   16GB RAM
+   GTX 1660 Ti
+   512GB SSD
+   1TB HDD
+
+   The file used for testing purposes is “x64n.rpf” which is 1.6GB 
    in size. The image testing.jpg in the repository shows the testing 
    time taken to upload as well as download the given file on a Haystack 
    storage architecture, which was approximately 19 seconds. The same test 
