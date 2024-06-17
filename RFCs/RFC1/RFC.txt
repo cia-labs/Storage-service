@@ -9,10 +9,9 @@ Author: Mohammed Siddiq                                Advisor : Tejus C
 
 Abstract:
 
-   This document describes how our current implementation of Object 
-   Storage Service lacks compared to the Haystack implementation. The 
-   documentation contains testing of the current storage implementation 
-   as well as Haystack.
+  This document outlines the limitations of our current Object Storage 
+  Service implementation compared to the Haystack approach. It includes
+  test results for both implementations
 
 Description of CIAOS and Haystack:
 
@@ -36,9 +35,6 @@ Description of CIAOS and Haystack:
 Testing:
 
    The test was run on a Lenovo Legion Y740-I5RH.
-
-   System Specifications:
-
    i7-9750H (cores: 6, threads: 12, max: 4.50 GHz, base: 2.60 GHz)
    16GB RAM
    GTX 1660 Ti
@@ -78,8 +74,6 @@ Handling the Update Endpoint:
    tions to the current update to handle only key updates and will 
    introduce a new API to handle appending more objects/files to the
    same key.
-
-   
 
 System Logs and Application Logs (Debug Logs):
 
