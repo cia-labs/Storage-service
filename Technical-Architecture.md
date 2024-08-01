@@ -10,3 +10,4 @@
 8. https://diamond.cs.cmu.edu/whatisdiamond.html [8] - Searching wihout an Index especially image data.
 9. https://github.com/seaweedfs/seaweedfs [9] - Started like how we started.
 10. https://gist.github.com/mikelehen/3596a30bd69384624c11 [10] - Firebase's push ID generation.
+11. https://www.adms-conf.org/ [11] - Hardware optimization for workflow types. 
