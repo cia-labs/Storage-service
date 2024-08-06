@@ -11,3 +11,4 @@
 9. https://github.com/seaweedfs/seaweedfs [9] - Started like how we started.
 10. https://gist.github.com/mikelehen/3596a30bd69384624c11 [10] - Firebase's push ID generation.
 11. https://www.adms-conf.org/ [11] - Hardware optimization for workflow types. 
+12. https://t.co/tEAygOhPyU [12] - TUM's High performance object storage for analytics. 
