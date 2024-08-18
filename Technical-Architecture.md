@@ -12,3 +12,4 @@
 10. https://gist.github.com/mikelehen/3596a30bd69384624c11 [10] - Firebase's push ID generation.
 11. https://www.adms-conf.org/ [11] - Hardware optimization for workflow types. 
 12. https://t.co/tEAygOhPyU [12] - TUM's High performance object storage for analytics. 
+13. https://jamesbornholt.com/papers/shardstore-sosp21.pdf [13] - Amazon S3's formal verification and Technical Details. 
