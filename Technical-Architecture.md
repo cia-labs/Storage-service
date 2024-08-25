@@ -13,3 +13,4 @@
 11. https://www.adms-conf.org/ [11] - Hardware optimization for workflow types. 
 12. https://t.co/tEAygOhPyU [12] - TUM's High performance object storage for analytics. 
 13. https://jamesbornholt.com/papers/shardstore-sosp21.pdf [13] - Amazon S3's formal verification and Technical Details. 
+14. https://storage.googleapis.com/pub-tools-public-publication-data/pdf/36971.pdf [13] - Google's Megastore. 
