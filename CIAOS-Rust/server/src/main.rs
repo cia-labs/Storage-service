@@ -3,7 +3,6 @@ use futures::StreamExt;
 use bytes::BytesMut;
 
 use log::{info, error, warn};
-use bincode;
 use actix_web::error::ErrorInternalServerError;
 
 // storage.rs contains functionality related to writing files to storage and getting offset and size
@@ -16,24 +15,10 @@ use crate::storage::{write_files_to_storage, get_files_from_storage, delete_and_
 mod database;
 use crate::database::{check_key,append_sql, update_file_db, upload_sql, get_offset_size_lists, delete_from_db, update_key_from_db};
 
-
+mod util;
+use crate::util::serializer::{serialize_offset_size, deserialize_offset_size};
 //offset and size of files are converted to binary to be stored in blob format in sql i.e deserialization and serialization fucntions 
-fn serialize_offset_size(offset_list: &Vec<u64>, size_list: &Vec<u64>) -> Result<(Vec<u8>, Vec<u8>), actix_web::Error> {
-    let offset_bytes = bincode::serialize(&offset_list)
-        .map_err(|e| actix_web::error::ErrorInternalServerError(format!("Failed to serialize offset list: {}", e)))?;
-    let size_bytes = bincode::serialize(&size_list)
-        .map_err(|e| actix_web::error::ErrorInternalServerError(format!("Failed to serialize size list: {}", e)))?;
-    
-    Ok((offset_bytes, size_bytes))
-}
-fn deserialize_offset_size(offset_bytes: &[u8], size_bytes: &[u8]) -> Result<(Vec<u64>, Vec<u64>), Error> {
-    let offset_list: Vec<u64> = bincode::deserialize(offset_bytes)
-        .map_err(|e| ErrorInternalServerError(format!("Failed to deserialize offset list: {}", e)))?;
-    let size_list: Vec<u64> = bincode::deserialize(size_bytes)
-        .map_err(|e| ErrorInternalServerError(format!("Failed to deserialize size list: {}", e)))?;
-    
-    Ok((offset_list, size_list))
-}
+
 
 //upload endpoint accepting a key string and payload 
 #[actix_web::post("/upload/{key}")]
