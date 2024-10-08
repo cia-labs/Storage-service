@@ -43,7 +43,7 @@ def test_save_success(mock_requests_post):
     assert response.status_code == 200
     assert response.text == "Data uploaded successfully: key = testkey"
 
-    expected_url = f"{API_URL}/upload/{key}"
+    expected_url = f"{API_URL}/post/{key}"
     expected_headers = {'Content-Type': 'application/octet-stream'}
     mock_requests_post.assert_called_once()
     called_args, called_kwargs = mock_requests_post.call_args

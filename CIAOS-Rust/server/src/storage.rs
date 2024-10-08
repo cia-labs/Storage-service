@@ -8,7 +8,6 @@ use flatbuffers::{root, FlatBufferBuilder};
 use actix_web::error::{ErrorInternalServerError, ErrorBadRequest};
 use serde_json::json;
 
-//mod util;
 use crate::util::Flatbuffer_Store_generated::store::{FileDataList, FileData, FileDataListArgs, FileDataArgs};
 
 
@@ -50,12 +49,11 @@ impl OpenFile {
 
 // this function accepts the flatbuffer and returns the offset and size list after proess the files in it
 pub fn write_files_to_storage(body: &[u8])
-    -> Result<(Vec<u64>, Vec<u64>), Error> {
+    -> Result<Vec<(u64, u64)>, Error> {
     // Open the storage file "haystack.bin" in append mode
     let mut haystack = OpenFile::new()?;
 
-    let mut offset_list: Vec<u64> = Vec::new();
-    let mut size_list: Vec<u64> = Vec::new();
+    let mut offset_size_list: Vec<(u64, u64)> = Vec::new();
 
     //deserialises the binary data thats been accepted into FileDataList object using flatbuffer
     
@@ -80,8 +78,7 @@ pub fn write_files_to_storage(body: &[u8])
 
         match haystack.write(data.bytes()) {
             Ok((offset, size)) => {
-                offset_list.push(offset);
-                size_list.push(size);
+                offset_size_list.push((offset, size));
                 info!("Written file {} at offset {} with size {}", index, offset, size);
             }
             Err(e) => {
@@ -91,18 +88,18 @@ pub fn write_files_to_storage(body: &[u8])
         }
     }
 
-    Ok((offset_list, size_list))
+    Ok(offset_size_list)
 }
 
 
-pub fn get_files_from_storage(offset_list: Vec<u64>, size_list: Vec<u64>)-> Result<Vec<u8>, Error> {
+pub fn get_files_from_storage(offset_size_list: Vec<(u64, u64)>)-> Result<Vec<u8>, Error> {
     info!("connecting to .bin and gettting files");
     let mut haystack = OpenFile::new().map_err(ErrorInternalServerError)?;
     info!("connected to .bin");
     let mut builder = FlatBufferBuilder::new();
     let mut file_data_vec = Vec::new();
     info!("building the flatbuffer to share");
-    for (&offset, &size) in offset_list.iter().zip(size_list.iter()) {
+    for &(offset, size) in offset_size_list.iter() {
         let data = haystack.read(offset, size).map_err(ErrorInternalServerError)?;
         let data_vector = builder.create_vector(&data);
         let file_data = FileData::create(&mut builder, &FileDataArgs { data: Some(data_vector) });
@@ -135,11 +132,10 @@ impl DeleteFile {
             Ok(Self { file })
     }
     
-    fn delete(&mut self, key: &str, offset_list: &[u64], size_list: &[u64]) -> Result<(), Error> {
+    fn delete(&mut self, key: &str,  offset_size_list: &[(u64, u64)]) -> Result<(), Error> {
             let log_entry = json!({
                 key: {
-                    "offset": offset_list,
-                    "size": size_list
+                    "offset_size": offset_size_list
                 }
             });
             
@@ -152,9 +148,9 @@ impl DeleteFile {
     }
 }
     
-pub fn delete_and_log(key: &str, offset_list: Vec<u64>, size_list: Vec<u64>) -> Result<(), Error> {
+pub fn delete_and_log(key: &str, offset_size_list: Vec<(u64, u64)>) -> Result<(), Error> {
         let mut delete_file = DeleteFile::new()?;
-        delete_file.delete(key, &offset_list, &size_list)?;
+        delete_file.delete(key, &offset_size_list)?;
     
         info!("Deleted and logged data for key: {}", key);
         Ok(())

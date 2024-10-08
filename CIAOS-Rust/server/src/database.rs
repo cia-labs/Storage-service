@@ -11,8 +11,7 @@ lazy_static! {
             "CREATE TABLE IF NOT EXISTS haystack (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 key TEXT NOT NULL,
-                offset_list BLOB,
-                size_list BLOB
+                offset_size_list BLOB
             )",
             [],
         )
@@ -28,22 +27,21 @@ pub fn check_key(key: &str) -> SqliteResult<bool> {
     Ok(count > 0)
 }
 
-pub fn upload_sql(key: &str, offset_bytes: &[u8], size_bytes: &[u8]) -> SqliteResult<()> {
+pub fn upload_sql(key: &str, offset_size_bytes: &[u8]) -> SqliteResult<()> {
     let conn = DB_CONN.lock().unwrap();
     conn.execute(
-        "INSERT INTO haystack (key, offset_list, size_list) VALUES (?1, ?2, ?3)",
-        params![key, offset_bytes, size_bytes],
+        "INSERT INTO haystack (key, offset_size_list) VALUES (?1, ?2)",
+        params![key, offset_size_bytes],
     )?;
     Ok(())
 }
 
-pub fn get_offset_size_lists(key: &str) -> SqliteResult<(Vec<u8>, Vec<u8>)> {
+pub fn get_offset_size_lists(key: &str) -> SqliteResult<Vec<u8>> {
     let conn = DB_CONN.lock().unwrap();
-    let mut stmt = conn.prepare("SELECT offset_list, size_list FROM haystack WHERE key = ?1")?;
+    let mut stmt = conn.prepare("SELECT offset_size_list FROM haystack WHERE key = ?1")?;
     let result = stmt.query_row(params![key], |row| {
-        let offset_list: Vec<u8> = row.get(0)?;
-        let size_list: Vec<u8> = row.get(1)?;
-        Ok((offset_list, size_list))
+        let offset_size_list: Vec<u8> = row.get(0)?;
+        Ok(offset_size_list)
     });
     result
 }
@@ -69,20 +67,20 @@ pub fn update_key_from_db(old_key: &str, new_key: &str) -> Result<(), actix_web:
     Ok(())
 }
 
-pub fn update_file_db(key: &str, offset_bytes: &[u8], size_bytes: &[u8]) -> Result<(), actix_web::Error> {
+pub fn update_file_db(key: &str, offset_size_bytes: &[u8]) -> Result<(), actix_web::Error> {
     let conn = DB_CONN.lock().unwrap();
     conn.execute(
-        "UPDATE haystack SET offset_list = ?1, size_list = ?2 WHERE key = ?3",
-        params![offset_bytes, size_bytes, key],
+        "UPDATE haystack SET offset_size_list = ?1 WHERE key = ?2",
+        params![offset_size_bytes, key],
     ).map_err(actix_web::error::ErrorInternalServerError)?;
 
     Ok(())
 }
-pub fn append_sql(key: &str, offset_bytes: &[u8], size_bytes: &[u8]) -> Result<(), actix_web::Error> {
+pub fn append_sql(key: &str, offset_size_bytes: &[u8]) -> Result<(), actix_web::Error> {
     let conn = DB_CONN.lock().unwrap();
     conn.execute(
-        "UPDATE haystack SET offset_list = ?1, size_list = ?2 WHERE key = ?3",
-        params![offset_bytes, size_bytes, key],
+        "UPDATE haystack SET offset_size_list = ?1 WHERE key = ?2",
+        params![offset_size_bytes, key],
     ).map_err(actix_web::error::ErrorInternalServerError)?;
 
     Ok(())
