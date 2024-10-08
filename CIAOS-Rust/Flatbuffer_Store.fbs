@@ -1,0 +1,12 @@
+// Flatbuffer_Store.fbs
+namespace Store;
+
+table FileData {
+  data:[ubyte];
+}
+
+table FileDataList {
+  files:[FileData];
+}
+
+root_type FileDataList;
