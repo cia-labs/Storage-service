@@ -1,7 +1,11 @@
 # client.py
 
 import requests
-from util.flatbuffer_handler import create_flatbuffer, parse_flatbuffer
+from util.flatbuffer.flatbuffer_handler import create_flatbuffer, parse_flatbuffer
+
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), 'util', 'flatbuffer'))
 
 def save(api_url, key, data_list):
     """
