@@ -4,6 +4,8 @@ use futures::StreamExt;
 use bytes::BytesMut;
 use log::{info, error, warn};
 use actix_web::error::{ErrorInternalServerError,ErrorBadRequest};
+use log_mdc;
+
 
 use crate::storage::{write_files_to_storage, get_files_from_storage, delete_and_log};
 use crate::database::Database;
@@ -11,12 +13,15 @@ use crate::util::serializer::{serialize_offset_size, deserialize_offset_size};
 
 
 fn header_handler(req: HttpRequest) -> Result<String, Error> {
-    Ok(req.headers()
+    let user = req.headers()
         .get("User")
         .ok_or_else(|| ErrorBadRequest("Missing User header"))?
         .to_str()
         .map_err(|_| ErrorBadRequest("Invalid User header value"))?
-        .to_string())
+        .to_string();
+    
+    log_mdc::insert("user", &user);
+    Ok(user)
 }
 
 pub async fn upload(key: String, mut payload: web::Payload, req: HttpRequest) -> Result<HttpResponse, Error>{
