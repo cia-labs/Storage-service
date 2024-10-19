@@ -12,7 +12,6 @@ use crate::util::Flatbuffer_Store_generated::store::{FileDataList, FileData, Fil
 
 
 
-const HAYSTACK_FILE: &str = "CIA_storage.bin";
 
 //OpenFile provides operation functionalities over the .bin file
 struct OpenFile {
@@ -23,12 +22,12 @@ struct OpenFile {
 
 impl OpenFile {
     //the actual function dealing with file 
-    fn new() -> io::Result<Self> {
+    fn new(user: &str) -> io::Result<Self> {
         let file = OpenOptions::new()
             .create(true)
             .read(true)
             .write(true)
-            .open(HAYSTACK_FILE)?;
+            .open(format!("{}.bin", user))?;
         Ok(Self { file })
     }
     //wirte inputs the data tobe written to file and returns offset and size of teh data
@@ -48,10 +47,10 @@ impl OpenFile {
 
 
 // this function accepts the flatbuffer and returns the offset and size list after proess the files in it
-pub fn write_files_to_storage(body: &[u8])
+pub fn write_files_to_storage(user : &str,body: &[u8])
     -> Result<Vec<(u64, u64)>, Error> {
     // Open the storage file "haystack.bin" in append mode
-    let mut haystack = OpenFile::new()?;
+    let mut haystack = OpenFile::new(&user)?;
 
     let mut offset_size_list: Vec<(u64, u64)> = Vec::new();
 
@@ -92,9 +91,9 @@ pub fn write_files_to_storage(body: &[u8])
 }
 
 
-pub fn get_files_from_storage(offset_size_list: Vec<(u64, u64)>)-> Result<Vec<u8>, Error> {
+pub fn get_files_from_storage(user : &str, offset_size_list: Vec<(u64, u64)>)-> Result<Vec<u8>, Error> {
     info!("connecting to .bin and gettting files");
-    let mut haystack = OpenFile::new().map_err(ErrorInternalServerError)?;
+    let mut haystack = OpenFile::new(&user).map_err(ErrorInternalServerError)?;
     info!("connected to .bin");
     let mut builder = FlatBufferBuilder::new();
     let mut file_data_vec = Vec::new();
@@ -116,18 +115,17 @@ pub fn get_files_from_storage(offset_size_list: Vec<(u64, u64)>)-> Result<Vec<u8
 ////////////////////////////////////////
 /// here starts delete functionality ///
 ////////////////////////////////////////
-const DELETE_FILE: &str = "delete_log.json";
 
 struct DeleteFile {
         file: File,
     }
     
 impl DeleteFile {
-    fn new() -> Result<Self, Error> {
+    fn new(user : &str) -> Result<Self, Error> {
             let file = OpenOptions::new()
                 .create(true)
                 .append(true)
-                .open(DELETE_FILE)
+                .open(format!("{}.json", user))
                 .map_err(ErrorInternalServerError)?;
             Ok(Self { file })
     }
@@ -148,8 +146,8 @@ impl DeleteFile {
     }
 }
     
-pub fn delete_and_log(key: &str, offset_size_list: Vec<(u64, u64)>) -> Result<(), Error> {
-        let mut delete_file = DeleteFile::new()?;
+pub fn delete_and_log(user : &str,key: &str, offset_size_list: Vec<(u64, u64)>) -> Result<(), Error> {
+        let mut delete_file = DeleteFile::new(&user)?;
         delete_file.delete(key, &offset_size_list)?;
     
         info!("Deleted and logged data for key: {}", key);

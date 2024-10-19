@@ -1,26 +1,32 @@
 //service.rs
-use actix_web::{ web, HttpResponse,Error };
+use actix_web::{ web, HttpResponse,Error, HttpRequest};
 use futures::StreamExt;
 use bytes::BytesMut;
 use log::{info, error, warn};
-use actix_web::error::ErrorInternalServerError;
+use actix_web::error::{ErrorInternalServerError,ErrorBadRequest};
 
 use crate::storage::{write_files_to_storage, get_files_from_storage, delete_and_log};
-use crate::database::{check_key,append_sql, update_file_db, upload_sql, get_offset_size_lists, delete_from_db, update_key_from_db};
+use crate::database::Database;
 use crate::util::serializer::{serialize_offset_size, deserialize_offset_size};
 
-fn check_key_exists(key: &str) -> Result<(), Error> {
-    if !check_key(key).map_err(ErrorInternalServerError)? {
-        warn!("Key does not exist: {}", key);
-        return Err(actix_web::error::ErrorNotFound(format!("No data found for key: {}, The key does not exist", key)));
-    }
-    Ok(())
+
+fn header_handler(req: HttpRequest) -> Result<String, Error> {
+    Ok(req.headers()
+        .get("User")
+        .ok_or_else(|| ErrorBadRequest("Missing User header"))?
+        .to_str()
+        .map_err(|_| ErrorBadRequest("Invalid User header value"))?
+        .to_string())
 }
 
+pub async fn upload(key: String, mut payload: web::Payload, req: HttpRequest) -> Result<HttpResponse, Error>{
 
-pub async fn post_service(key: String, mut payload: web::Payload ) -> Result<HttpResponse, Error>{
+    //get user
+    //let user  = header_hanler(req);
+    let user = header_handler(req)?;
 
-    if check_key(&key).map_err(ErrorInternalServerError)? {
+    let db = Database::new(&user)?;
+    if db.check_key(&key).map_err(ErrorInternalServerError)? {
         warn!("Key already exists: {}", key);
         return Ok(HttpResponse::BadRequest().body("Key already exists"));
     }
@@ -40,7 +46,7 @@ pub async fn post_service(key: String, mut payload: web::Payload ) -> Result<Htt
     info!("Total received data size: {} bytes", bytes.len());
 
     //sends the bytes to storage.rs so that the flatbuffer can deserialise it and write to bin and than return offset and size vec list
-    let offset_size_list = write_files_to_storage(&bytes)?;
+    let offset_size_list = write_files_to_storage(&user, &bytes)?;
 
 
     if offset_size_list.is_empty()  {
@@ -52,20 +58,23 @@ pub async fn post_service(key: String, mut payload: web::Payload ) -> Result<Htt
 
     let offset_size_bytes = serialize_offset_size(&offset_size_list)?;
 
-    upload_sql(&key, &offset_size_bytes)
+    db.upload_sql(&key, &offset_size_bytes)
         .map_err(ErrorInternalServerError)?;
 
     info!("Data uploaded successfully with key: {}", key);
     Ok(HttpResponse::Ok().body(format!("Data uploaded successfully: key = {}", key)))
 }
 
-pub async fn get_service(key: String)-> Result<HttpResponse, Error>{
+pub async fn retrieve(key: String, req: HttpRequest)-> Result<HttpResponse, Error>{
 
-    check_key_exists(&key)?;
+    let user = header_handler(req)?;
+
+    let db = Database::new(&user)?;
+    db.check_key_nonexistance(&key)?;
     info!("Retrieving data for key: {}", key);
 
     // Connect to the SQLite database and retrieve offset and size data
-    let offset_size_bytes = match get_offset_size_lists(&key) {
+    let offset_size_bytes = match db.get_offset_size_lists(&key) {
         Ok(offset_size_bytes) => offset_size_bytes,
         Err(e) => {
             warn!("Key does not exist or database error: {}", e);
@@ -76,7 +85,7 @@ pub async fn get_service(key: String)-> Result<HttpResponse, Error>{
     // Deserialize offset and size data
     let offset_size_list = deserialize_offset_size(&offset_size_bytes)?;
 
-    let data = get_files_from_storage(offset_size_list)?;
+    let data = get_files_from_storage(&user,offset_size_list)?;
 
     // Return the FlatBuffers serialized data
     Ok(HttpResponse::Ok()
@@ -84,9 +93,11 @@ pub async fn get_service(key: String)-> Result<HttpResponse, Error>{
         .body(data))
 }
 
-pub async fn append_service(key: String, mut payload: web::Payload ) -> Result<HttpResponse, Error> {
-    
-    check_key_exists(&key)?;
+pub async fn append_service(key: String, mut payload: web::Payload, req: HttpRequest ) -> Result<HttpResponse, Error> {
+    let user = header_handler(req)?;
+
+    let db = Database::new(&user)?;
+    db.check_key_nonexistance(&key)?;
     info!("Starting chunk load");
     let mut bytes = BytesMut::new();
     while let Some(chunk) = payload.next().await {
@@ -100,7 +111,7 @@ pub async fn append_service(key: String, mut payload: web::Payload ) -> Result<H
     
     info!("Total received data size: {} bytes", bytes.len());
 
-    let mut offset_size_list_append = write_files_to_storage(&bytes)?;
+    let mut offset_size_list_append = write_files_to_storage(&user,&bytes)?;
 
 
     if offset_size_list_append.is_empty() {
@@ -110,7 +121,7 @@ pub async fn append_service(key: String, mut payload: web::Payload ) -> Result<H
    
     info!("Serializing offset and size and uploading");
 
-    let offset_size_bytes = match get_offset_size_lists(&key) {
+    let offset_size_bytes = match db.get_offset_size_lists(&key) {
         Ok(offset_size_bytes) => offset_size_bytes,
         Err(e) => {
             warn!("Key does not exist or database error: {}", e);
@@ -126,7 +137,7 @@ pub async fn append_service(key: String, mut payload: web::Payload ) -> Result<H
 
     let offset_size_bytes_append = serialize_offset_size(&offset_size_list)?;
 
-    append_sql(&key, &offset_size_bytes_append)
+    db.append_sql(&key, &offset_size_bytes_append)
             .map_err(ErrorInternalServerError)?;
     
     info!("Data apended successfully with key: {}", key);
@@ -134,10 +145,13 @@ pub async fn append_service(key: String, mut payload: web::Payload ) -> Result<H
     
 }
 
-pub async  fn delete_service(key: String)-> Result<HttpResponse, Error>{
-    
-    check_key_exists(&key)?;
-    let offset_size_bytes = match get_offset_size_lists(&key) {
+pub async fn delete_service(key: String, req: HttpRequest)-> Result<HttpResponse, Error>{
+
+    let user = header_handler(req)?;
+
+    let db = Database::new(&user)?;
+    db.check_key_nonexistance(&key)?;
+    let offset_size_bytes = match db.get_offset_size_lists(&key) {
         Ok(offset_size_bytes) => offset_size_bytes,
         Err(e) => {
             warn!("Key does not exist or database error: {}", e);
@@ -147,27 +161,32 @@ pub async  fn delete_service(key: String)-> Result<HttpResponse, Error>{
     let offset_size_list = deserialize_offset_size(&offset_size_bytes)?;
     // Deserialize offset and size data
     
-    delete_and_log(&key, offset_size_list)?;
+    delete_and_log(&user,&key, offset_size_list)?;
 
-    match delete_from_db(&key) {
+    match db.delete_from_db(&key) {
         Ok(()) => Ok(HttpResponse::Ok().body(format!("File deleted successfully: key = {}", key))),
         Err(e) => Ok(HttpResponse::InternalServerError().body(format!("Failed to delete key: {}", e))),
     }
 }
 
-pub async fn update_key_service(old_key: String, new_key: String)->  Result<HttpResponse, Error>{
+pub async fn update_key_service(old_key: String, new_key: String, req: HttpRequest)->  Result<HttpResponse, Error>{
     
-    check_key_exists(&old_key)?;
+    let user = header_handler(req)?;
+
+    let db = Database::new(&user)?;
+    db.check_key_nonexistance(&old_key)?;
     // Update the key in the database
-    match update_key_from_db(&old_key, &new_key) {
+    match db.update_key_from_db(&old_key, &new_key) {
         Ok(()) => Ok(HttpResponse::Ok().body(format!("Key updated successfully from {} to {}", old_key, new_key))),
         Err(e) => Ok(HttpResponse::InternalServerError().body(format!("Failed to update key: {}", e))),
     }
 }
 
-pub async  fn update_service(key: String, mut payload: web::Payload ) ->  Result<HttpResponse, Error>{
-    
-    check_key_exists(&key)?;
+pub async  fn update_service(key: String, mut payload: web::Payload, req: HttpRequest ) ->  Result<HttpResponse, Error>{
+    let user = header_handler(req)?;
+
+    let db = Database::new(&user)?;
+    db.check_key_nonexistance(&key)?;
 
     info!("Starting chunk load");
     let mut bytes = BytesMut::new();
@@ -184,7 +203,7 @@ pub async  fn update_service(key: String, mut payload: web::Payload ) ->  Result
     info!("Total received data size: {} bytes", bytes.len());
     info!("Starting deserialization");
     
-    let offset_size_list = write_files_to_storage(&bytes)?;
+    let offset_size_list = write_files_to_storage(&user,&bytes)?;
    
     if offset_size_list.is_empty()  {
         error!("No data in data list with key: {}", key);
@@ -193,7 +212,7 @@ pub async  fn update_service(key: String, mut payload: web::Payload ) ->  Result
     
 
     let offset_size_bytes = serialize_offset_size(&offset_size_list)?;
-    update_file_db(&key, &offset_size_bytes)
+    db.update_file_db(&key, &offset_size_bytes)
     .map_err(ErrorInternalServerError)?;
 
     info!("Data uploaded successfully with key: {}", key);

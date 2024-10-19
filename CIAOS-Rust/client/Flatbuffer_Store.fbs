@@ -1,5 +1,5 @@
 // Flatbuffer_Store.fbs
-namespace Store;
+namespace flatbuffer;
 
 table FileData {
   data:[ubyte];

@@ -1,4 +1,4 @@
-use actix_web::{HttpServer, App};
+use actix_web::{guard::Put, App, HttpServer};
 
 use log::info;
 
@@ -11,7 +11,7 @@ mod database;
 mod util;
 
 mod api;
-use crate::api::{upload,retrieve,append,delete,update_key,update};
+use crate::api::{put,get,append,delete,update_key,update};
 
 mod service;
 use log4rs;
@@ -26,8 +26,8 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(|| {
         App::new()
             .wrap(actix_web::middleware::Logger::default())
-            .service(upload) 
-            .service(retrieve) 
+            .service(put) 
+            .service(get) 
             .service(append)
             .service(delete)
             .service(update_key)

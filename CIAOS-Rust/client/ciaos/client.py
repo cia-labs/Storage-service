@@ -1,13 +1,14 @@
 # client.py
 
-import requests
-from util.flatbuffer.flatbuffer_handler import create_flatbuffer, parse_flatbuffer
-
 import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(__file__), 'util', 'flatbuffer'))
+sys.path.append(os.path.join(os.path.dirname(__file__), 'util'))
+import requests
+from typing import List
+from util.flatbuffer.flatbuffer_handler import create_flatbuffer, parse_flatbuffer
 
-def save(api_url, key, data_list):
+
+def put(user: str, api_url: str, key: str, data_list: List[bytes]):
     """
     Uploads new files to the server under a unique key.
 
@@ -15,6 +16,7 @@ def save(api_url, key, data_list):
         api_url (str): Base URL of the API.
         key (str): Unique key for the upload.
         data_list (List[bytes]): List of file data in bytes.
+        user str will be the user 
 
     Returns:
         requests.Response or None: The server's response or None if an error occurs.
@@ -25,8 +27,10 @@ def save(api_url, key, data_list):
             print("Failed to create FlatBuffers data.")
             return None
 
-        headers = {'Content-Type': 'application/octet-stream'}
-        response = requests.post(f"{api_url}/post/{key}", data=flatbuffer_data, headers=headers)
+        headers = {
+            'User': user
+        }
+        response = requests.post(f"{api_url}/put/{key}", data=flatbuffer_data, headers=headers)
 
         if response.status_code == 200:
             print("Upload successful:", response.text)
@@ -37,7 +41,7 @@ def save(api_url, key, data_list):
         print("HTTPError during upload:", e)
         return None
 
-def update_key(api_url, old_key, new_key):
+def update_key(user: str,api_url: str, old_key: str, new_key: str):
     """
     Updates the key identifier for existing data.
 
@@ -50,7 +54,8 @@ def update_key(api_url, old_key, new_key):
         str or None: Server response text or None if an error occurs.
     """
     try:
-        response = requests.put(f"{api_url}/update/{old_key}/{new_key}")
+        headers = {'User': user}
+        response = requests.put(f"{api_url}/update_key/{old_key}/{new_key}", headers=headers)        
         if response.status_code == 200:
             print("Key update successful:", response.text)
             return response.text
@@ -61,7 +66,7 @@ def update_key(api_url, old_key, new_key):
         print("HTTPError during key update:", e)
         return None
 
-def update_data(api_url, key, data_list):
+def update(user: str, api_url: str, key: str, data_list: List[bytes]):
     """
     Updates existing files with new data under the given key.
 
@@ -79,8 +84,10 @@ def update_data(api_url, key, data_list):
             print("Failed to create FlatBuffers data for update.")
             return None
 
-        headers = {'Content-Type': 'application/octet-stream'}
-        response = requests.post(f"{api_url}/update_data/{key}", data=flatbuffer_data, headers=headers)
+        headers = {
+            'User': user
+        }
+        response = requests.post(f"{api_url}/update/{key}", data=flatbuffer_data, headers=headers)
 
         if response.status_code == 200:
             print("Data update successful:", response.text)
@@ -91,7 +98,7 @@ def update_data(api_url, key, data_list):
         print("HTTPError during data update:", e)
         return None
 
-def append(api_url, key, data_list):
+def append(user: str, api_url: str, key: str, data_list: List[bytes]):
     """
     Appends new files to existing data under the given key.
 
@@ -109,7 +116,9 @@ def append(api_url, key, data_list):
             print("Failed to create FlatBuffers data for append.")
             return None
 
-        headers = {'Content-Type': 'application/octet-stream'}
+        headers = {
+            'User': user
+        }
         response = requests.post(f"{api_url}/append/{key}", data=flatbuffer_data_append, headers=headers)
         if response.status_code == 200:
             print("Append successful:", response.text)
@@ -121,7 +130,7 @@ def append(api_url, key, data_list):
         print("HTTPError during append:", e)
         return None
 
-def delete_key(api_url, key):
+def delete(user: str, api_url: str, key: str):
     """
     Deletes data associated with a key.
 
@@ -133,7 +142,8 @@ def delete_key(api_url, key):
         str or None: Server response text or None if an error occurs.
     """
     try:
-        response = requests.delete(f"{api_url}/delete/{key}")
+        headers = {'User': user}
+        response = requests.delete(f"{api_url}/delete/{key}", headers=headers)
         if response.status_code == 200:
             print("Delete successful:", response.text)
             return response.text
@@ -144,7 +154,7 @@ def delete_key(api_url, key):
         print("HTTPError during delete:", e)
         return None
 
-def get(api_url, key):
+def get(user: str, api_url: str, key: str):
     """
     Retrieves files associated with a key.
 
@@ -156,7 +166,8 @@ def get(api_url, key):
         List[bytes] or None: List of file data in bytes if successful, else None.
     """
     try:
-        response = requests.get(f"{api_url}/get/{key}")
+        headers = {'User': user}
+        response = requests.get(f"{api_url}/get/{key}", headers=headers)
         if response.status_code == 200:
             flatbuffer_data = response.content
             # Parse the Flatbuffer and extract files

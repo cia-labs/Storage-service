@@ -1,5 +1,6 @@
+#flatbuffer_handler.py
 import flatbuffers
-from .Store import FileData, FileDataList  # Ensure 'Store' is generated from your .fbs file
+from util.flatbuffer import FileData, FileDataList
 
 
 def create_flatbuffer(data_list):

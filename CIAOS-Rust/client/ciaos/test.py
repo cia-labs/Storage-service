@@ -3,7 +3,7 @@
 import pytest
 import requests
 from unittest.mock import patch
-from client import save, get, update_data, update_key, append, delete_key
+from client import put, get, update, update_key, append, delete
 
 # Fixtures to mock requests methods
 @pytest.fixture
@@ -26,8 +26,8 @@ def mock_requests_delete():
     with patch('requests.delete') as mock_delete:
         yield mock_delete
 
-# Test cases for the 'save' function
-def test_save_success(mock_requests_post):
+# Test cases for the 'put' function
+def test_put_success(mock_requests_post):
     API_URL = "http://127.0.0.1:8080"
     key = "testkey"
     data_list = [b"data1", b"data2"]
@@ -38,7 +38,7 @@ def test_save_success(mock_requests_post):
 
     mock_requests_post.return_value = mock_response
 
-    response = save(API_URL, key, data_list)
+    response = put(API_URL, key, data_list)
 
     assert response.status_code == 200
     assert response.text == "Data uploaded successfully: key = testkey"
@@ -52,7 +52,7 @@ def test_save_success(mock_requests_post):
     assert 'headers' in called_kwargs
     assert called_kwargs['headers'] == expected_headers
 
-def test_save_failure_key_exists(mock_requests_post):
+def test_put_failure_key_exists(mock_requests_post):
     API_URL = "http://127.0.0.1:8080"
     key = "existingkey"
     data_list = [b"data1", b"data2"]
@@ -63,7 +63,7 @@ def test_save_failure_key_exists(mock_requests_post):
 
     mock_requests_post.return_value = mock_response
 
-    response = save(API_URL, key, data_list)
+    response = put(API_URL, key, data_list)
 
     assert response.status_code == 400
     assert response.text == "Key already exists"
@@ -254,14 +254,14 @@ def test_delete_key_failure(mock_requests_delete):
     assert response_text == "Key not found"
 
 # Additional test cases for edge conditions and exceptions
-def test_save_exception(mock_requests_post):
+def test_put_exception(mock_requests_post):
     API_URL = "http://127.0.0.1:8080"
     key = "testkey"
     data_list = [b"data1", b"data2"]
 
     mock_requests_post.side_effect = requests.RequestException("Network error")
 
-    response = save(API_URL, key, data_list)
+    response = put(API_URL, key, data_list)
 
     assert response is None
 
