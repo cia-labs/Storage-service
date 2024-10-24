@@ -40,9 +40,10 @@ impl OpenFile {
      * Parameters:
      * - data: Byte slice containing data to be written
      * Returns: Tuple of (offset, size) in bytes
-     */    fn write(&mut self, data: &[u8]) -> io::Result<(u64, u64)> {
+     */    
+    fn write(&mut self, data: &[u8]) -> io::Result<(u64, u64)> {
         let offset = self.file.seek(SeekFrom::End(0))?;
-        self.file.write_all(data)?;
+        self.file.write_all(data)?; 
         Ok((offset, data.len() as u64))
     }
    /* Reads data from the file at specified offset and size
