@@ -7,7 +7,6 @@ from util.flatbuffer.flatbuffer_handler import create_flatbuffer, parse_flatbuff
 import config
 from typing import List, Optional
 
-
 class Ciaos:
     def __init__(self):
         """
@@ -17,7 +16,6 @@ class Ciaos:
         config.API_URL = "<server url>"
         config.user.id = "your_user_id"
         """
-        self.api_url = config.API_URL
 
         # Get user ID from config
         try:
@@ -76,7 +74,7 @@ class Ciaos:
                 return None
 
             response = requests.post(
-                f"{self.api_url}/put/{key}", 
+                f"{config.api_url}/put/{key}", 
                 data=flatbuffer_data, 
                 headers=self.headers
             )
@@ -104,7 +102,7 @@ class Ciaos:
         """
         try:
             response = requests.put(
-                f"{self.api_url}/update_key/{old_key}/{new_key}", 
+                f"{config.api_url}/update_key/{old_key}/{new_key}", 
                 headers=self.headers
             )
             if response.status_code == 200:
@@ -134,7 +132,7 @@ class Ciaos:
                 return None
 
             response = requests.post(
-                f"{self.api_url}/update/{key}", 
+                f"{config.api_url}/update/{key}", 
                 data=flatbuffer_data, 
                 headers=self.headers
             )
@@ -166,7 +164,7 @@ class Ciaos:
                 return None
 
             response = requests.post(
-                f"{self.api_url}/append/{key}", 
+                f"{config.api_url}/append/{key}", 
                 data=flatbuffer_data_append, 
                 headers=self.headers
             )
@@ -191,7 +189,7 @@ class Ciaos:
         """
         try:
             response = requests.delete(
-                f"{self.api_url}/delete/{key}", 
+                f"{config.api_url}/delete/{key}", 
                 headers=self.headers
             )
             if response.status_code == 200:
@@ -215,7 +213,7 @@ class Ciaos:
         """
         try:
             response = requests.get(
-                f"{self.api_url}/get/{key}", 
+                f"{config.api_url}/get/{key}", 
                 headers=self.headers
             )
             if response.status_code == 200:
