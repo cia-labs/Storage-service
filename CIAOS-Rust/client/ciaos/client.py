@@ -4,43 +4,79 @@ sys.path.append(os.path.join(os.path.dirname(__file__), 'util'))
 import requests
 from typing import List
 from util.flatbuffer.flatbuffer_handler import create_flatbuffer, parse_flatbuffer
-from config import API_URL
+import config
+from typing import List, Optional
+
 
 class Ciaos:
-    def __init__(self, user: str):
+    def __init__(self):
         """
-        Initialize Ciaos client with user.
-        API URL is imported from config.py
+        Initialize Ciaos client with configuration parameters.
+        API URL and user ID are imported from config
 
-        Args:
-            user (str): Username for API requests
+        config.API_URL = "<server url>"
+        config.user.id = "your_user_id"
         """
-        self.user = user
+        self.api_url = config.API_URL
+
+        # Get user ID from config
+        try:
+            self.user_id = config.user_id
+            if not self.user_id:
+                raise ValueError("User ID must be set in config.user.id")
+        except AttributeError:
+            raise ValueError("config.user.id must be defined")
+
         self.headers = {
-                "User": self.user,
-            }
+            "User": self.user_id,
+        }
 
-    def put(self, key: str, data_list: List[bytes]):
+    def put(self, key: Optional[str] = None, file_path: Optional[str] = None, data_list: Optional[List[bytes]] = None):
         """
-        Uploads new files to the server under a unique key.
+        Uploads files to the server with flexible input options.
 
         Args:
-            bucket (str): Target bucket for the upload.
-            key (str): Unique key for the upload.
-            data_list (List[bytes]): List of file data in bytes.
+            key (Optional[str]): Unique key for the upload. If None and file_path provided, 
+                            uses filename as key.
+            file_path (Optional[str]): Path to file to upload. If provided, reads file data.
+            data_list (Optional[List[bytes]]): List of file data in bytes. Used if file_path 
+                                            not provided.
 
         Returns:
             requests.Response or None: The server's response or None if an error occurs.
         """
         try:
+            # Handle file path only case
+            if file_path:
+                try:
+                    with open(file_path, 'rb') as file:
+                        file_data = file.read()
+                        data_list = [file_data]
+                    
+                    # If key not provided, use filename from path
+                    if key is None:
+                        key = os.path.basename(file_path)
+                except IOError as e:
+                    print(f"Error reading file {file_path}: {e}")
+                    return None
+            
+            # Validate required parameters when file_path is not given
+            if key is None:
+                print("Error: key is required when file_path is not provided")
+                return None
+            
+            if data_list is None:
+                print("Error: either file_path or data_list must be provided")
+                return None
+
+            # Create and send flatbuffer data
             flatbuffer_data = create_flatbuffer(data_list)
             if flatbuffer_data is None:
                 print("Failed to create FlatBuffers data.")
                 return None
 
-           
             response = requests.post(
-                f"{API_URL}/put/{key}", 
+                f"{self.api_url}/put/{key}", 
                 data=flatbuffer_data, 
                 headers=self.headers
             )
@@ -50,6 +86,7 @@ class Ciaos:
             else:
                 print("Error during upload:", response.text)
             return response
+
         except requests.RequestException as e:
             print("HTTPError during upload:", e)
             return None
@@ -59,7 +96,6 @@ class Ciaos:
         Updates the key identifier for existing data.
 
         Args:
-            bucket (str): Target bucket containing the key.
             old_key (str): The current key.
             new_key (str): The new key to update to.
 
@@ -67,9 +103,8 @@ class Ciaos:
             str or None: Server response text or None if an error occurs.
         """
         try:
-
             response = requests.put(
-                f"{API_URL}/update_key/{old_key}/{new_key}", 
+                f"{self.api_url}/update_key/{old_key}/{new_key}", 
                 headers=self.headers
             )
             if response.status_code == 200:
@@ -86,7 +121,6 @@ class Ciaos:
         Updates existing files with new data under the given key.
 
         Args:
-            bucket (str): Target bucket containing the key.
             key (str): Key identifying the data to update.
             data_list (List[bytes]): New list of file data in bytes.
 
@@ -100,7 +134,7 @@ class Ciaos:
                 return None
 
             response = requests.post(
-                f"{API_URL}/update/{key}", 
+                f"{self.api_url}/update/{key}", 
                 data=flatbuffer_data, 
                 headers=self.headers
             )
@@ -119,7 +153,6 @@ class Ciaos:
         Appends new files to existing data under the given key.
 
         Args:
-            bucket (str): Target bucket containing the key.
             key (str): Key identifying the data to append to.
             data_list (List[bytes]): List of file data to append.
 
@@ -133,7 +166,7 @@ class Ciaos:
                 return None
 
             response = requests.post(
-                f"{API_URL}/append/{key}", 
+                f"{self.api_url}/append/{key}", 
                 data=flatbuffer_data_append, 
                 headers=self.headers
             )
@@ -151,16 +184,14 @@ class Ciaos:
         Deletes data associated with a key.
 
         Args:
-            bucket (str): Target bucket containing the key.
             key (str): Key identifying the data to delete.
 
         Returns:
             str or None: Server response text or None if an error occurs.
         """
         try:
-           
             response = requests.delete(
-                f"{API_URL}/delete/{key}", 
+                f"{self.api_url}/delete/{key}", 
                 headers=self.headers
             )
             if response.status_code == 200:
@@ -177,16 +208,14 @@ class Ciaos:
         Retrieves files associated with a key.
 
         Args:
-            bucket (str): Target bucket containing the key.
             key (str): Key identifying the data to retrieve.
 
         Returns:
             List[bytes] or None: List of file data in bytes if successful, else None.
         """
         try:
-          
             response = requests.get(
-                f"{API_URL}/get/{key}", 
+                f"{self.api_url}/get/{key}", 
                 headers=self.headers
             )
             if response.status_code == 200:
