@@ -29,7 +29,7 @@ class Ciaos:
             "User": self.user_id,
         }
 
-    def put(self, key: Optional[str] = None, file_path: Optional[str] = None):
+    def put(self, key: Optional[str] = None, file_path: str):
         """
         Uploads files to the server with flexible input options.
 
