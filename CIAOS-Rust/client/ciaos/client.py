@@ -29,43 +29,28 @@ class Ciaos:
             "User": self.user_id,
         }
 
-    def put(self, key: Optional[str] = None, file_path: str):
+    def put(self, file_path: str, key: Optional[str] = None):
         """
         Uploads files to the server with flexible input options.
 
         Args:
             key (Optional[str]): Unique key for the upload. If None and file_path provided, 
                             uses filename as key.
-            file_path (Optional[str]): Path to file to upload. If provided, reads file data.
-            data_list (Optional[List[bytes]]): List of file data in bytes. Used if file_path 
-                                            not provided.
+            file_path : Path to file to upload.reads file data.
 
         Returns:
             requests.Response or None: The server's response or None if an error occurs.
         """
         try:
             # Handle file path only case
-            if file_path:
-                try:
-                    with open(file_path, 'rb') as file:
-                        file_data = file.read()
-                        data_list = [file_data]
+            with open(file_path, 'rb') as file:
+                file_data = file.read()
+                data_list = [file_data]
                     
                     # If key not provided, use filename from path
-                    if key is None:
-                        key = os.path.basename(file_path)
-                except IOError as e:
-                    print(f"Error reading file {file_path}: {e}")
-                    return None
-            
-            # Validate required parameters when file_path is not given
             if key is None:
-                print("Error: key is required when file_path is not provided")
-                return None
-            
-            if data_list is None:
-                print("Error: file in file_path is empty")
-                return None
+                key = os.path.basename(file_path)
+
 
             # Create and send flatbuffer data
             flatbuffer_data = create_flatbuffer(data_list)
