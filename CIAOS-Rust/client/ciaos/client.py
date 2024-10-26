@@ -29,7 +29,7 @@ class Ciaos:
             "User": self.user_id,
         }
 
-    def put(self, key: Optional[str] = None, file_path: Optional[str] = None, data_list: Optional[List[bytes]] = None):
+    def put(self, key: Optional[str] = None, file_path: Optional[str] = None):
         """
         Uploads files to the server with flexible input options.
 
@@ -64,7 +64,7 @@ class Ciaos:
                 return None
             
             if data_list is None:
-                print("Error: either file_path or data_list must be provided")
+                print("Error: file in file_path is empty")
                 return None
 
             # Create and send flatbuffer data
@@ -85,6 +85,29 @@ class Ciaos:
                 print("Error during upload:", response.text)
             return response
 
+        except requests.RequestException as e:
+            print("HTTPError during upload:", e)
+            return None
+    
+    def put_binary(self, key: str, data_list: List[bytes]):
+        try:
+            flatbuffer_data = create_flatbuffer(data_list)
+            if flatbuffer_data is None:
+                print("Failed to create FlatBuffers data.")
+                return None
+
+
+            response = requests.post(
+                f"{API_URL}/put/{key}", 
+                data=flatbuffer_data, 
+                headers=self.headers
+            )
+
+            if response.status_code == 200:
+                print("Upload successful:", response.text)
+            else:
+                print("Error during upload:", response.text)
+            return response
         except requests.RequestException as e:
             print("HTTPError during upload:", e)
             return None

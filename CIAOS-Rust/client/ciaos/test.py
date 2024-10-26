@@ -36,7 +36,7 @@ def test_put_success(mock_requests_post, ciaos_client):
     mock_response.text = "Data uploaded successfully: key = testkey"
     mock_requests_post.return_value = mock_response
 
-    response = ciaos_client.put(key, data_list)
+    response = ciaos_client.put_binary(key, data_list)
 
     assert response.status_code == 200
     assert response.text == "Data uploaded successfully: key = testkey"
