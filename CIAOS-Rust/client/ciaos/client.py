@@ -98,7 +98,7 @@ class Ciaos:
 
 
             response = requests.post(
-                f"{API_URL}/put/{key}", 
+                f"{config.api_url}/put/{key}", 
                 data=flatbuffer_data, 
                 headers=self.headers
             )
