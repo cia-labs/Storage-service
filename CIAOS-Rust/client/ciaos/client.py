@@ -4,29 +4,45 @@ sys.path.append(os.path.join(os.path.dirname(__file__), 'util'))
 import requests
 from typing import List
 from util.flatbuffer.flatbuffer_handler import create_flatbuffer, parse_flatbuffer
-import config
 from typing import List, Optional
+from dataclasses import dataclass
+
+@dataclass
+class Config:
+    """Configuration class for Ciaos client.
+    
+    Args:
+        api_url (str): The server URL for API requests
+        user_id (str): User identifier for authentication
+        user_access_key (str): Access key for authentication
+    """
+    api_url: str
+    user_id: str
+    user_access_key: str
+
 
 class Ciaos:
-    def __init__(self):
+    def __init__(self, config : Config):
         """
         Initialize Ciaos client with configuration parameters.
         API URL and user ID are imported from config
 
-        config.API_URL = "<server url>"
+        self.config.api_url = "<server url>"
         config.user.id = "your_user_id"
         """
 
         # Get user ID from config
-        try:
-            self.user_id = config.user_id
-            if not self.user_id:
-                raise ValueError("User ID must be set in config.user.id")
-        except AttributeError:
-            raise ValueError("config.user.id must be defined")
+        self.config = config
+        
+        if not self.config.user_id:
+            raise ValueError("User ID must not be empty")
+        
+        if not self.config.api_url:
+            raise ValueError("API URL must not be empty")
+
 
         self.headers = {
-            "User": self.user_id,
+            "User": self.config.user_id
         }
 
     def put(self, file_path: str, key: Optional[str] = None):
@@ -40,17 +56,26 @@ class Ciaos:
 
         Returns:
             requests.Response or None: The server's response or None if an error occurs.
+            
+        Raises:
+            FileNotFoundError: If the specified file_path does not exist
+            ValueError: If file_path is empty or None
         """
+        if not file_path:
+            raise ValueError("file_path cannot be empty or None")
+            
+        if not os.path.exists(file_path):
+            raise FileNotFoundError(f"File not found: {file_path}")
+            
         try:
             # Handle file path only case
             with open(file_path, 'rb') as file:
                 file_data = file.read()
                 data_list = [file_data]
                     
-                    # If key not provided, use filename from path
+            # If key not provided, use filename from path
             if key is None:
                 key = os.path.basename(file_path)
-
 
             # Create and send flatbuffer data
             flatbuffer_data = create_flatbuffer(data_list)
@@ -59,7 +84,7 @@ class Ciaos:
                 return None
 
             response = requests.post(
-                f"{config.api_url}/put/{key}", 
+                f"{self.config.api_url}/put/{key}", 
                 data=flatbuffer_data, 
                 headers=self.headers
             )
@@ -73,7 +98,6 @@ class Ciaos:
         except requests.RequestException as e:
             print("HTTPError during upload:", e)
             return None
-    
     def put_binary(self, key: str, data_list: List[bytes]):
         try:
             flatbuffer_data = create_flatbuffer(data_list)
@@ -83,7 +107,7 @@ class Ciaos:
 
 
             response = requests.post(
-                f"{config.api_url}/put/{key}", 
+                f"{self.config.api_url}/put/{key}", 
                 data=flatbuffer_data, 
                 headers=self.headers
             )
@@ -110,7 +134,7 @@ class Ciaos:
         """
         try:
             response = requests.put(
-                f"{config.api_url}/update_key/{old_key}/{new_key}", 
+                f"{self.config.api_url}/update_key/{old_key}/{new_key}", 
                 headers=self.headers
             )
             if response.status_code == 200:
@@ -140,7 +164,7 @@ class Ciaos:
                 return None
 
             response = requests.post(
-                f"{config.api_url}/update/{key}", 
+                f"{self.config.api_url}/update/{key}", 
                 data=flatbuffer_data, 
                 headers=self.headers
             )
@@ -172,7 +196,7 @@ class Ciaos:
                 return None
 
             response = requests.post(
-                f"{config.api_url}/append/{key}", 
+                f"{self.config.api_url}/append/{key}", 
                 data=flatbuffer_data_append, 
                 headers=self.headers
             )
@@ -197,7 +221,7 @@ class Ciaos:
         """
         try:
             response = requests.delete(
-                f"{config.api_url}/delete/{key}", 
+                f"{self.config.api_url}/delete/{key}", 
                 headers=self.headers
             )
             if response.status_code == 200:
@@ -221,7 +245,7 @@ class Ciaos:
         """
         try:
             response = requests.get(
-                f"{config.api_url}/get/{key}", 
+                f"{self.config.api_url}/get/{key}", 
                 headers=self.headers
             )
             if response.status_code == 200:
