@@ -37,7 +37,7 @@ async fn main() -> std::io::Result<()> {
             .service(update_key)
             .service(update)
     })
-    .bind("127.0.0.1:8080")?
+    .bind(("0.0.0.0", 9710))?
     .run()
     .await
 }

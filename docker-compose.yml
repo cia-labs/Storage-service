@@ -3,9 +3,9 @@ services:
   ciaos-app:
     image: ghcr.io/cia-labs/ciaos:${BUILD_HASH}
     ports:
-      - 11000:8000
+      - 9710:9710
     volumes:
       - ciaosdata:/data
 
 volumes:
-  ciaosdata:              
+  ciaosdata:
