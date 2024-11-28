@@ -1,6 +1,6 @@
 #flatbuffer_handler.py
 import flatbuffers
-from util.flatbuffer import FileData, FileDataList
+from ciaos.util.flatbuffer import FileData, FileDataList
 
 
 def create_flatbuffer(data_list):

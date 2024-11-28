@@ -5,8 +5,8 @@ setup(
     version='1.0.0',
     packages=find_packages(),
     install_requires=[
-        "flatbuffers>=24.3.25",
-        "requests >= 2.31.0",
+        "flatbuffers",
+        "requests",
         ],
     entry_points={
         'console_scripts': [],

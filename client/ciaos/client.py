@@ -1,9 +1,9 @@
 import os
 import requests
 from typing import List
-from util.flatbuffer.flatbuffer_handler import create_flatbuffer, parse_flatbuffer
+from ciaos.util.flatbuffer.flatbuffer_handler import create_flatbuffer, parse_flatbuffer
 from typing import List, Optional
-from config import Config 
+from ciaos.config import Config 
 
 class Ciaos:
     def __init__(self, config : Config):

@@ -1,7 +1,7 @@
 import pytest
 import requests
 from unittest.mock import patch, Mock
-from client import Ciaos, Config
+from ciaos.client import Ciaos, Config
 
 @pytest.fixture
 def mock_requests_post():
@@ -83,7 +83,7 @@ def test_put_binary_success(mock_requests_post, ciaos_client):
 def test_get_success(mock_requests_get, ciaos_client):
     key = "testkey"
 
-    with patch('client.parse_flatbuffer') as mock_parse_flatbuffer:
+    with patch('ciaos.client.parse_flatbuffer') as mock_parse_flatbuffer:
         mock_parse_flatbuffer.return_value = [b"data1", b"data2"]
         mock_response = Mock()
         mock_response.status_code = 200
