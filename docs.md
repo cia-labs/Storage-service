@@ -1,80 +1,87 @@
 # Developer's Guide
 
-## Local Setup.
-**Here's a step to step guide to bring up the storage server in your local.** 
+## Local Setup  
+**Follow these steps to set up and run the storage server locally.**  
 
-### Prerequisites
+### Prerequisites  
 
-- Python 3.10 or higher installed on your machine
-- pip package manager
+- **Rust**  
+- **libsqlite3-dev**  
+- **FlatBuffers Compiler (`flatc`)**  
 
-### Clone the Repository
+To install the FlatBuffers compiler (`flatc`), execute the following commands:  
+
+```bash
+git clone https://github.com/google/flatbuffers.git
+cd flatbuffers
+cmake
+make
+./flattests # Quick test; should print "ALL TESTS PASSED"
+sudo make install # Install FlatBuffers
+sudo ldconfig # Configure the dynamic linker
+flatc --version # Verify FlatBuffers installation
+```  
+
+---
+
+### Clone the Repository  
 
 ```bash
 git clone https://github.com/cia-labs/Storage-service.git
 cd Storage-service/server
-```
-### Install Dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-### Running the application
-
-```bash
-uvicorn main:app --reload
-```
-### Accessing Api's and testing the functionality. 
-
-Once the app is successfully installed, access http://127.0.0.1:8000/docs, You'll see a screen similar to the below screen shot
-<img width="1617" alt="image" src="https://github.com/cia-labs/Storage-service/assets/41864599/e8774034-5a50-4e82-9e4b-c3e84c47bdf9">
+```  
 
 ---
+
+### Building the Rust Server  
+
+```bash
+cargo build
+```  
+
 ---
 
-# Deploying the Storage Service as a Docker Container
+### Running the Application  
 
-To deploy the storage service as a container, follow these steps:
+```bash
+cargo run
+```  
 
-## **Create a Dockerfile:**
+---
 
-Create a file named Dockerfile in the root directory of your project and add the following content:
-```docker
-# Use the latest version of Alpine as the base image
-FROM alpine:latest
+# Deploying the Storage Service as a Docker Container  
 
-# Set the working directory inside the container
-WORKDIR /code
+To deploy the storage service as a container, follow these steps:  
 
-# Copy all files from directory to /code
-COPY . /code
+### Build the Docker Image  
 
-# Install Python and pip in the Alpine image
-RUN apk --no-cache add python3 py3-pip
+Use the provided [Dockerfile](https://github.com/cia-labs/Storage-service/blob/main/Dockerfile) in the GitHub repository to build the image:  
 
-# Set up a virtual environment
-RUN python3 -m venv /venv
-ENV PATH="/venv/bin:$PATH"
+```bash
+docker build -t ciaos .
+```  
+---
+### (Optional) Modifying the Exposed Port   
 
-# Expose port 8000
-EXPOSE 8000
+If you wish to change the exposed port:  
 
-# Upgrade pip and install the required packages
-RUN pip install --upgrade pip && pip install -r requirements.txt  
+1. Update the **bind address** in `Storage-service/server/src/main.rs`:  
 
-# Specify the command to run the application
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000","--reload"]
+```rust
+.bind(("0.0.0.0", 9710))? // Default is port 9710
+```  
 
-```
- **Now Build the Docker Image and deploy the container**
+2. Modify the `EXPOSE` directive in the Dockerfile to reflect the new port:  
 
-you can access the Swagger UI over the container ip address at port 8000
+```dockerfile
+# Change the exposed port
+EXPOSE 9710
+```  
 
-- Note: If you want to change the exposed port, modify the EXPOSE and CMD directives in the Dockerfile. Update the EXPOSE line with the desired port, and adjust the --port option in the CMD line accordingly.
+### Run the Docker Container  
 
-```docker
-# Change the exposed port to 8080
-EXPOSE 8080
+```bash
+docker run -p 9710:9710 ciaos
+```  
 
-
+The storage service should now be accessible on the specified port.
