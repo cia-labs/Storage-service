@@ -2,13 +2,38 @@
 use std::sync::Mutex;
 use rusqlite::{params, Connection, Result as SqliteResult};
 use std::sync::Arc;
-use log::warn;
+use log::{warn, info};
 use actix_web::Error;
 use lazy_static::lazy_static;
+use std::env;
+use std::path::{Path, PathBuf};
+
+fn get_db_path() -> PathBuf {
+    // Try to get the path from environment variable
+    match env::var("DB_FILE") {
+        Ok(path) => {
+            info!("Using database path from environment: {}", path);
+            PathBuf::from(path)
+        }
+        Err(_) => {
+            warn!("Metadata database location not defined in environment");
+            // Create default path: ./metadata/metadata.sqlite
+            let default_path = Path::new("metadata").join("metadata.sqlite");
+            
+            // Create directory if it doesn't exist
+            if let Some(parent) = default_path.parent() {
+                std::fs::create_dir_all(parent).expect("Failed to create metadata directory");
+            }
+            info!("Using default database path: {}", default_path.display());
+            default_path
+        }
+    }
+}
 
 lazy_static! {
     static ref DB_CONN: Arc<Mutex<Connection>> = {
-        let conn = Connection::open("metadata.sqlite").expect("Failed to open the database");
+        let db_path = get_db_path();
+        let conn = Connection::open(&db_path).expect("Failed to open the database");
         conn.execute(
             "CREATE TABLE IF NOT EXISTS haystack (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
