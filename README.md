@@ -1,7 +1,7 @@
 # CIAOS - CIA's Object Store
 
 ## About
-CIAOS is a general purpose KV/Object store optimised for machine learning practices. 
+CIAOS is a general purpose KV/Object store focused on workloads that require high throughput. Practical Applications which drives our developemt is to support Storage Disaggregation Architectures and AI/ML Workloads . 
 
 ## System Offerings that are currently being built. 
 1. Storage - Key/Value, Files and Blobs. 
@@ -9,9 +9,11 @@ CIAOS is a general purpose KV/Object store optimised for machine learning practi
 3. User Access Management - Seeks contribution for design. [Discussion](https://github.com/cia-labs/Storage-service/issues/36)
 4. Search - Seeks contribution for design. -   [Discussion](https://github.com/cia-labs/Storage-service/issues/35)
 5. Availability - Seeks contribution for design. [Discussion]()
-6. Client Library and Http Services - Client package is currently available for Python only. Both Client and API end points. - [Discussion]()
+6. Client Library - Client package is currently available for Python only. - [Discussion]()
 
 ---
+
+
 
 ## Getting Started
 
@@ -19,15 +21,11 @@ CIAOS is a general purpose KV/Object store optimised for machine learning practi
 pip install ciaos
 ```
 
----
-
-## Usage
-
 #### Configuration
 To use CIAOS, you need to initialize a `Config` object with the necessary details:
 
 - **`user_id`**: Your user ID .
-- **`api_url`**: The URL of the FastAPI server.
+- **`api_url`**: The URL of the storage server.
 - **`user_access_key`**: Your user access key for authentication.
 
 Here's how to set up and use the library:
